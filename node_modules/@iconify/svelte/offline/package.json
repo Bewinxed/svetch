@@ -1,0 +1,7 @@
+{
+	"name": "@iconify/svelte/offline",
+	"svelte": "../dist/OfflineIcon.svelte",
+	"module": "../dist/offline.mjs",
+	"main": "../dist/offline.js",
+	"types": "../dist/offline.d.ts"
+}

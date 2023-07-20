@@ -1,0 +1,25 @@
+{
+    "name": "@types/readline-sync",
+    "version": "1.4.4",
+    "description": "TypeScript definitions for readline-sync",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/readline-sync",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Tristan Jones",
+            "url": "https://github.com/jonestristand",
+            "githubUsername": "jonestristand"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/readline-sync"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "e1f50776380e11e6c9771f7a3de210972d63b1a3aac1d96a489f8cf4cd7d9d81",
+    "typeScriptVersion": "3.6"
+}

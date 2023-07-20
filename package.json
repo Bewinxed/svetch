@@ -1,0 +1,75 @@
+{
+  "name": "svetch.ts",
+  "version": "1.0.17",
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "dist",
+    "node_modules"
+  ],
+  "description": "End-to-End typesafe fetch client for your API",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc src/index.ts",
+    "start": "tsx src/index.ts $PWD",
+    "generate": "tsx bin.ts",
+    "dev": "tsx src/index.ts $PWD --watch",
+    "init": "tsx init.ts"
+  },
+  "bin": "bin.js",
+  "keywords": [
+    "svelte",
+    "sveltekit",
+    "typescript",
+    "fetch",
+    "typesafe"
+  ],
+  "author": "Omar Al Matar",
+  "license": "Paid",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bewinxed/svetch"
+  },
+  "bugs": {
+    "url": "https://github.com/Bewinxed/svetch/issues"
+  },
+  "homepage": "https://github.com/Bewinxed/svetch#readme",
+  "dependencies": {
+    "@iconify/svelte": "^3.1.4",
+    "comment-parser": "^1.3.1",
+    "inquirer": "^9.2.8",
+    "json-schema-to-zod": "^1.1.1",
+    "readline-sync": "^1.4.10",
+    "ts-morph": "^19.0.0",
+    "tsx": "^3.12.7",
+    "typescript": "^5.1.6",
+    "typescript-json-schema": "^0.59.0",
+    "yargs": "^17.7.2",
+    "zod": "^3.21.4"
+  },
+  "compilerOptions": {
+    "module": "esnext",
+    "lib": [
+      "dom",
+      "esnext"
+    ],
+    "importHelpers": true,
+    "declaration": true,
+    "sourceMap": true,
+    "rootDir": "./src",
+    "outDir": "./dist/esm",
+    "moduleResolution": "esnext",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "noEmitOnError": true
+  },
+  "devDependencies": {
+    "@types/detective": "^5.1.3",
+    "@types/inquirer": "^9.0.3",
+    "@types/readline-sync": "^1.4.4",
+    "detective-es6": "^4.0.1",
+    "heapdump": "^0.3.15"
+  }
+}
