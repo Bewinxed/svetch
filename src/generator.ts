@@ -1521,7 +1521,7 @@ async function sendTelemetry() {
   // send telemetry to svetch server
   const url = 'https://svetch-dev.vercel.app/telemetry'
 
-  await fetch(url, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -1529,7 +1529,10 @@ async function sendTelemetry() {
     body: JSON.stringify(telemetryPayload)
   })
 
-}
+  if (response.status === 200) {
+    log.debug(1, `Telemetry sent successfully, it contains only statistics, if you don't want it, you can set telemetry to false in your .svetchrc file`)
+
+}}
 
 function generateSchema() {
   // optionally pass argument to schema generator
