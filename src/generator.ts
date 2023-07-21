@@ -4,6 +4,7 @@ import * as fs from "fs";
 import inquirer from "inquirer";
 import { parseSchema } from "json-schema-to-zod";
 import * as path from "path";
+import * as os from "os";
 
 import { resolve } from "path";
 import {
@@ -27,6 +28,7 @@ import {
 } from "ts-morph";
 import * as TJS from "typescript-json-schema";
 import { footprintOfType } from "./svelte-codegen";
+import { v4 as uuidv4 } from 'uuid';
 const workingDir = process.env.PWD!;
 
 const separator = `--------------------------------------`;
@@ -38,6 +40,32 @@ const separator = `--------------------------------------`;
 //     else console.log(`Heap dump written to ${snapshotFile}`);
 //   });
 // });
+
+// this won't send if you disable telemetry
+let telemetryPayload: Telemetry = {
+  _id: uuidv4(),
+  // read from svelte.config.js
+  project: workingDir.split("/").pop()!,
+  timestamp: Date.now(),
+  data: {
+    session_id: uuidv4(),
+    script_name: "svetch",
+    operating_system: os.platform(),
+    node_version: process.version,
+    npm_version: process.env.npm_package_version || "unknown",
+    encountered_errors: false,
+    error_messages: [],
+    processed_files_count: 0,
+    generated_lines_of_code: 0,
+    processed_endpoints: {
+      'POST': 0,
+      'GET': 0,
+      'PUT': 0,
+      'PATCH': 0,
+      'DELETE': 0,
+      
+    }
+}}
 
 
 class Log {
@@ -130,6 +158,8 @@ class Log {
   }
 
   error(nesting: number = 1, ...args: any[]) {
+    telemetryPayload.data.encountered_errors = true
+    telemetryPayload.data.error_messages.push(args.join(" "))
     if (this.logLevel >= 4 && (!this.filter || this.filter === "error")) {
       this.log("red", nesting, "🚨 [ERROR]:	", ...args);
     }
@@ -151,6 +181,7 @@ interface ScriptArgs {
   tsconfig: string;
   logLevel?: number;
   filter?: string | null;
+  telemetry: boolean
 }
 
 function readSvetchrc() {
@@ -172,6 +203,7 @@ const defaultArgs: ScriptArgs = {
   tsconfig: "tsconfig.json",
   logLevel: 5,
   filter: null,
+  telemetry: true
 };
 
 async function initSvetchrc() {
@@ -270,6 +302,7 @@ const {
   filter,
   docs,
   staticFolder,
+  telemetry
 } = parseArgs(args);
 
 const project = new Project({
@@ -624,6 +657,7 @@ function processFunctionDeclaration(
   }
 
   if (!endpoints[apiPath][methodType]) {
+    telemetryPayload.data.processed_endpoints[methodType]++
     endpoints[apiPath][methodType] = {};
   }
 
@@ -1224,6 +1258,7 @@ function processFiles() {
   };
 
   project.getSourceFiles().forEach((file) => {
+    telemetryPayload.data.processed_files_count += 1;
     file.getExportedDeclarations().forEach((declarationsArray) => {
       declarationsArray.forEach((declaration) => {
         if (
@@ -1402,14 +1437,19 @@ function generateInterfaces() {
     }
   }
 
+  const final_output = importsOutput + output + actionOutput
+
+  // count how many lines are in the output
+  telemetryPayload.data.generated_lines_of_code += final_output.split("\n").length;
+
   fs.writeFileSync(
     path.join(outputPath, "api.ts"),
-    importsOutput + output + actionOutput
+    final_output
   );
 
   log.success(
     2,
-    `Genererated Svetch API types in ${path.join(outputPath, "api.ts")}`
+    `generated Svetch API types in ${path.join(outputPath, "api.ts")}`
   );
 }
 
@@ -1430,7 +1470,13 @@ function generateClient() {
     }
   }
 
-  fs.writeFileSync(path.join(outputPath, "client.ts"), importsOutput + output);
+  
+  const final_output = importsOutput + output
+
+  telemetryPayload.data.generated_lines_of_code += final_output.split("\n").length;
+
+
+  fs.writeFileSync(path.join(outputPath, "client.ts"), final_output);
 
   log.success(
     2,
@@ -1439,6 +1485,51 @@ function generateClient() {
 }
 
 let jsonSchema: TJS.Definition | null = null;
+
+async function sendTelemetry() {
+
+  if (telemetry === false) {
+    return;
+  }
+
+  // read previous telemetry if it exists
+  if (fs.existsSync(path.join(__dirname, "telemetry.json"))) {
+    const previousTelemetry = JSON.parse(
+      fs.readFileSync(path.join(__dirname, "telemetry.json")).toString()
+    );
+
+    // if the previous telemetry was sent less than 24 hours ago, don't send it again
+    if (Date.now() - previousTelemetry.timestamp < 1000 * 60 * 60 * 24) {
+      return;
+    }
+
+    // if the number of lines of code is the same as the previous telemetry, don't send it again
+    if (
+      previousTelemetry.data.generated_lines_of_code ===
+      telemetryPayload.data.generated_lines_of_code
+    ) {
+      return;
+    }
+  }
+
+  // write telemetry locally
+  fs.writeFileSync(
+    path.join(__dirname, "telemetry.json"),
+    JSON.stringify(telemetryPayload)
+  );
+
+  // send telemetry to svetch server
+  const url = 'https://svetch-dev.vercel.app/telemetry'
+
+  await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(telemetryPayload)
+  })
+
+}
 
 function generateSchema() {
   // optionally pass argument to schema generator
@@ -1476,16 +1567,21 @@ function generateSchema() {
     path.join(outputPath, "schema.json"),
     JSON.stringify(schema, null, 2)
   );
+  
   fs.writeFileSync(
     path.join(schemaOutputPath, "apiSchema.json"),
     JSON.stringify(schema)
   );
+
+  telemetryPayload.data.generated_lines_of_code += JSON.stringify(schema).split("\n").length;
 }
 
 async function generateZodSchema() {
   const schema = parseSchema(jsonSchema as any);
 
   const output = `import { z } from 'zod';\n\nexport const schema = ${schema};`;
+
+  telemetryPayload.data.generated_lines_of_code += output.split("\n").length;
 
   //   write
   fs.writeFileSync(path.join(outputPath, "zod.ts"), output);
@@ -1576,6 +1672,11 @@ function main() {
   generateZodSchema();
   generateSvetchClient();
   generateSvetchDocs();
+  try {
+    sendTelemetry();
+  } catch (error) {
+    
+  }
 
   log.success(
     1,
@@ -1632,12 +1733,12 @@ export function runAll() {
 }
 
 import {exec} from 'child_process'
+import { Telemetry } from "./types/telemetry";
 const packageJson = require(path.resolve(__dirname, '../package.json'));
 
 function checkVersion() {
     const packageName = packageJson.name;
     const currentVersion = packageJson.version;
-
     exec(`npm show ${packageName} version`, (err, stdout, stderr) => {
         if (err) {
             console.error(`exec error: ${err}`);
@@ -1645,6 +1746,8 @@ function checkVersion() {
         }
         
         const latestVersion = stdout.trim();
+
+        telemetryPayload.data.script_version = currentVersion;
         
         console.log(`Current version: ${currentVersion}`);
         console.log(`Latest version: ${latestVersion}`);
