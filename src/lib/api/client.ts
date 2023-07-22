@@ -1,6 +1,3 @@
-import type { APIPaths } from './api'
-import { schema } from './zod'
-
 export type Fetch = (input: string | RequestInfo | URL, init?: RequestInit) => Promise<Response>
 
 type EndpointMethod<EP extends keyof APIPaths, M extends keyof APIPaths[EP]> = APIPaths[EP][M]
