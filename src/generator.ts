@@ -545,7 +545,8 @@ function extractQueryParameters(declaration: FunctionDeclaration): string {
 
 	let queryTypeString = '{ ';
 	for (const parameterName in queryParameters) {
-		queryTypeString += `${parameterName}: ${queryParameters[parameterName]}; `;
+		// if nullable
+		queryTypeString += `${parameterName}${queryParameters[parameterName].includes('null') || queryParameters[parameterName].includes('undefined') || queryParameters[parameterName].includes('never') ? '?' : ''}: ${queryParameters[parameterName]}; `;
 	}
 	queryTypeString += '}';
 
