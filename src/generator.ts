@@ -467,7 +467,7 @@ function extractQueryParameters(declaration: FunctionDeclaration): string {
 		if (node.getKind() === SyntaxKind.VariableDeclaration) {
 		  const variableDeclaration = node.asKindOrThrow(SyntaxKind.VariableDeclaration);
 		  const initializer = variableDeclaration.getInitializer();
-		  
+		
 		  if (initializer && Node.isPropertyAccessExpression(initializer)) {
 			const expression = initializer.getExpression();
 			const property = initializer.getName();
@@ -482,7 +482,7 @@ function extractQueryParameters(declaration: FunctionDeclaration): string {
 		// Detect usage of url.searchParams.get(x) or variable.get(x) or variable[x]
 		if (Node.isCallExpression(node) || Node.isElementAccessExpression(node)) {
 		  let expression = node.getExpression();
-	  
+		
 		  if (Node.isPropertyAccessExpression(expression)) {
 			const object = expression.getExpression();
 			const property = expression.getName();
@@ -493,7 +493,7 @@ function extractQueryParameters(declaration: FunctionDeclaration): string {
 	  
 			  if (args.length > 0 && args[0].getKind() === SyntaxKind.StringLiteral) {
 				const queryParameterName = (args[0] as StringLiteral).getLiteralText();
-				queryParameters[queryParameterName] = 'string';
+				queryParameters[queryParameterName] = typeChecker.getTypeAtLocation(node).getText();
 			  }
 			}
 		  } else if (Node.isElementAccessExpression(expression)) {
@@ -503,7 +503,39 @@ function extractQueryParameters(declaration: FunctionDeclaration): string {
 			  const argumentExpression = expression.getArgumentExpression();
 			  if (argumentExpression && argumentExpression.getKind() === SyntaxKind.StringLiteral) {
 				const queryParameterName = (argumentExpression as StringLiteral).getLiteralText();
-				queryParameters[queryParameterName] = 'string';
+				queryParameters[queryParameterName] = typeChecker.getTypeAtLocation(argumentExpression).getText();
+				
+			  }
+			}
+		  }
+		}
+	  
+		// Get the type of the constant when the query string is assigned to it
+		if (node.getKind() === SyntaxKind.VariableDeclaration) {
+		  const variableDeclaration = node.asKindOrThrow(SyntaxKind.VariableDeclaration);
+		  const initializer = variableDeclaration.getInitializer();
+	  
+		  if (initializer && (Node.isCallExpression(initializer) || Node.isElementAccessExpression(initializer))) {
+			const expression = initializer.getExpression();
+	  
+			if (Node.isPropertyAccessExpression(expression)) {
+			  const object = expression.getExpression();
+			  const property = expression.getName();
+	  
+			  if ((object.getText() === 'url.searchParams' && property === 'get') ||
+				  (searchParamsVariables.has(object.getText()) && property === 'get')) {
+				const variableType = typeChecker.getTypeAtLocation(variableDeclaration)
+				const variableName = variableDeclaration.getName();
+				queryParameters[variableName] = variableType.getText();
+			  }
+			} else if (Node.isElementAccessExpression(expression)) {
+			  const expressionName = expression.getExpression().getText();
+	  
+			  if (searchParamsVariables.has(expressionName)) {
+				const variableType = typeChecker.getTypeAtLocation(variableDeclaration);
+				const variableName = variableDeclaration.getName();
+				queryParameters[variableName] = variableType.getText();
+				console.log(variableType.getText())
 			  }
 			}
 		  }

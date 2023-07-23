@@ -59,7 +59,7 @@ export class Svetch {
 			queryStr =
 				'?' +
 				Object.entries(query)
-					.map(([key, value]) => `${key}=${value}`)
+					.map(([key, value]) => `${key}=${value.toString()}`)
 					.join('&')
 		}
 
