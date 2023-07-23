@@ -460,37 +460,56 @@ function extractPathParams(path: string) {
 function extractQueryParameters(declaration: FunctionDeclaration): string {
 	const queryParameters: Record<string, string> = {};
 
+	let searchParamsVariables = new Set();
+
 	declaration.forEachDescendant((node: Node) => {
+		// Detect any declaration of url.searchParams and store the variable name
 		if (node.getKind() === SyntaxKind.VariableDeclaration) {
-			const variableDeclaration = node.asKindOrThrow(
-				SyntaxKind.VariableDeclaration
-			);
-			const initializer = variableDeclaration.getInitializer();
-
-			if (initializer && Node.isCallExpression(initializer)) {
-				const expression = initializer.getExpression();
-
-				if (Node.isPropertyAccessExpression(expression)) {
-					const object = expression.getExpression();
-					const property = expression.getName();
-
-					if (object.getText() === 'url.searchParams' && property === 'get') {
-						const args = initializer.getArguments();
-
-						if (
-							args.length > 0 &&
-							args[0].getKind() === SyntaxKind.StringLiteral
-						) {
-							const queryParameterName = (
-								args[0] as StringLiteral
-							).getLiteralText();
-							queryParameters[queryParameterName] = 'string';
-						}
-					}
-				}
+		  const variableDeclaration = node.asKindOrThrow(SyntaxKind.VariableDeclaration);
+		  const initializer = variableDeclaration.getInitializer();
+		  
+		  if (initializer && Node.isPropertyAccessExpression(initializer)) {
+			const expression = initializer.getExpression();
+			const property = initializer.getName();
+	  
+			if (expression.getText() === 'url' && property === 'searchParams') {
+			  const variableName = variableDeclaration.getName();
+			  searchParamsVariables.add(variableName);
 			}
+		  }
 		}
-	});
+	  
+		// Detect usage of url.searchParams.get(x) or variable.get(x) or variable[x]
+		if (Node.isCallExpression(node) || Node.isElementAccessExpression(node)) {
+		  let expression = node.getExpression();
+	  
+		  if (Node.isPropertyAccessExpression(expression)) {
+			const object = expression.getExpression();
+			const property = expression.getName();
+			
+			if ((object.getText() === 'url.searchParams' && property === 'get') ||
+				(searchParamsVariables.has(object.getText()) && property === 'get')) {
+			  const args = node.getArguments();
+	  
+			  if (args.length > 0 && args[0].getKind() === SyntaxKind.StringLiteral) {
+				const queryParameterName = (args[0] as StringLiteral).getLiteralText();
+				queryParameters[queryParameterName] = 'string';
+			  }
+			}
+		  } else if (Node.isElementAccessExpression(expression)) {
+			const expressionName = expression.getExpression().getText();
+	  
+			if (searchParamsVariables.has(expressionName)) {
+			  const argumentExpression = expression.getArgumentExpression();
+			  if (argumentExpression && argumentExpression.getKind() === SyntaxKind.StringLiteral) {
+				const queryParameterName = (argumentExpression as StringLiteral).getLiteralText();
+				queryParameters[queryParameterName] = 'string';
+			  }
+			}
+		  }
+		}
+	  });
+	  
 
 	let queryTypeString = '{ ';
 	for (const parameterName in queryParameters) {
