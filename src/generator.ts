@@ -700,10 +700,11 @@ function processFunctionDeclaration(declaration: FunctionDeclaration | VariableD
 
 	const filePath = declaration.getSourceFile().getFilePath()
 
-	const apiPath = filePath
-		.slice(filePath.indexOf('api/') + 4, filePath.lastIndexOf('/'))
-		.replace(/\[\w+\]/g, ':$&')
-		.replace(/\[|\]/g, '')
+	const apiPath = filePath.replace(workingDir, '').replace('/src/routes', '')
+	.replace('/+server.ts', '').replace('/', '')
+	// replace path params with :param
+	.replace(/\[([^\]]+)\]/g, ':$1')
+	
 
 	if (!endpoints[apiPath]) {
 		endpoints[apiPath] = {}

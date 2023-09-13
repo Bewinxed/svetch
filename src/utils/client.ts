@@ -28,7 +28,7 @@ export class Svetch {
 	private fetch: Fetch
 	private validate: boolean
 
-	constructor(baseURL: string = '/api', fetchInstance?: Fetch, validate: boolean = true) {
+	constructor(baseURL: string = '', fetchInstance?: Fetch, validate: boolean = true) {
 		this.baseURL = baseURL
 		this.fetch = fetchInstance || (fetch as Fetch)
 		this.validate = false
