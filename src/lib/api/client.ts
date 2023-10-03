@@ -1,3 +1,7 @@
+import type { APIPaths } from './api'
+import { schema } from './zod'
+import type { APIPaths } from './api'
+
 export type Fetch = (input: string | RequestInfo | URL, init?: RequestInit) => Promise<Response>
 
 type EndpointMethod<EP extends keyof APIPaths, M extends keyof APIPaths[EP]> = APIPaths[EP][M]
@@ -26,7 +30,7 @@ export class Svetch {
 	private fetch: Fetch
 	private validate: boolean
 
-	constructor(baseURL: string = '/api', fetchInstance?: Fetch, validate: boolean = true) {
+	constructor(baseURL: string = '', fetchInstance?: Fetch, validate: boolean = true) {
 		this.baseURL = baseURL
 		this.fetch = fetchInstance || (fetch as Fetch)
 		this.validate = false
@@ -57,7 +61,7 @@ export class Svetch {
 			queryStr =
 				'?' +
 				Object.entries(query)
-					.map(([key, value]) => `${key}=${value}`)
+					.map(([key, value]) => `${key}=${value.toString()}`)
 					.join('&')
 		}
 

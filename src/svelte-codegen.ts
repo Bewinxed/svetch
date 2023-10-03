@@ -209,6 +209,18 @@ export function footprintOfType(params: {
 	if (type.isObject() && type.getSymbol()?.getName() === 'Date') {
 		return 'Date'
 	}
+	
+	// if it's JsonValue
+	if (type.isObject() && type.getSymbol()?.getName() === 'JsonValue') {
+		// return { [key: string]: any }
+		return {
+			'__type': 'JsonValue',
+			'__call': 'JsonValue'
+		}[node.getKindName()] ?? defaultFormat()
+		}
+		
+		
+	
 
 	if (type.isTuple()) {
 		const types = type.getTupleElements()
@@ -358,7 +370,16 @@ function properties(
 			return true
 		})
 
-		.map((value) => property(value, node, next))
+		.map((value) => {
+			const type = value.getValueDeclaration()?.getType();
+			// If the type is Prisma.JsonValue, return custom type representation
+			if (type?.getText().includes("Prisma.JsonValue")) {
+				return `${value.getName()}: {[key: string]: any};`;
+			}
+
+			// Else, proceed as normal
+			return property(value, node, next);
+		})
 		.join('\n')
 }
 

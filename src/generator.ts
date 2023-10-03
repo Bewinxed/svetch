@@ -173,7 +173,8 @@ interface ScriptArgs {
 	tsconfig: string
 	logLevel?: number
 	filter?: string | null
-	telemetry: boolean
+	telemetry: boolean,
+	zod?: boolean
 }
 
 function readSvetchrc() {
@@ -195,7 +196,8 @@ const defaultArgs: ScriptArgs = {
 	tsconfig: 'tsconfig.json',
 	logLevel: 5,
 	filter: null,
-	telemetry: true
+	telemetry: true,
+	zod: false
 }
 
 async function initSvetchrc() {
@@ -230,6 +232,11 @@ Send any feedback or issues here 👉 https://github.com/Bewinxed/svetch/
 			name: 'input',
 			message: `Which folder would you like svetch to scan for API routes? - default: ${defaultArgs.input}`,
 			default: defaultArgs.input
+		},
+		{
+			name: "zod",
+			message: `Would you like to generate Zod schemas? - default: ${defaultArgs.zod} (this could increase package import size)`,
+			default: defaultArgs.zod
 		},
 		{
 			name: 'out',
@@ -280,7 +287,7 @@ function parseArgs(rawArgs: string[]): ScriptArgs {
 	return { ...defaultArgs, ...parsedArgs }
 }
 
-const { tsconfig, framework, input, out, logLevel, filter, docs, staticFolder, telemetry } =
+const { tsconfig, framework, input, out, logLevel, filter, docs, staticFolder, telemetry, zod } =
 	parseArgs(args)
 
 const project = new Project({
@@ -411,6 +418,23 @@ function processTypeNode(node: TypeNode): string {
 
 		return inferredTypes as any
 	}
+
+	// if is a string literal
+	if (Node.isStringLiteral(node)) {
+		return node.getLiteralText()
+	}
+
+	// if just a string
+	if (Node.isStringKeyword(node)) {
+		return 'string'
+	}
+
+	// if template string
+	if (Node.isTemplateExpression(node)) {
+		return 'string'
+	}
+
+
 
 	return node.getText()
 }
@@ -1281,8 +1305,7 @@ function processFiles() {
 				) {
 					handleProcessing(file, declaration, processTypeDeclaration)
 				} else if (validDeclaration(declaration, ['actions'])) {
-					return
-					handleProcessing(file, declaration, processActionsDeclaration)
+					return handleProcessing(file, declaration, processActionsDeclaration)
 				}
 			})
 		})
@@ -1636,7 +1659,8 @@ function main() {
 	generateClient()
 	try {
 		generateSchema()
-		generateZodSchema()
+		if (zod === true){
+		generateZodSchema()}
 		generateSvetchDocs()
 	} catch (error) {
 		log.error(1, `Error generating schema, please report this to the developer, ${error}`)
