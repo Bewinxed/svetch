@@ -1305,7 +1305,8 @@ function processFiles() {
 				) {
 					handleProcessing(file, declaration, processTypeDeclaration)
 				} else if (validDeclaration(declaration, ['actions'])) {
-					return handleProcessing(file, declaration, processActionsDeclaration)
+					return
+					 handleProcessing(file, declaration, processActionsDeclaration)
 				}
 			})
 		})
@@ -1590,7 +1591,7 @@ function generateSvetchClient() {
 	let client = fs.readFileSync(path.resolve(__dirname, './utils/client.ts')).toString()
 
 	// if the schema was generated, add it to the client
-	if (fs.existsSync(path.join(outputPath, 'zod.ts'))) {
+	if (zod && fs.existsSync(path.join(outputPath, 'zod.ts'))) {
 		client = `import { schema } from './zod'` + '\n' + client
 	}
 

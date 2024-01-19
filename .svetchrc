@@ -6,5 +6,6 @@
   "staticFolder": "static",
   "tsconfig": "tsconfig.json",
   "logLevel": 5,
-  "filter": null
+  "filter": null,
+  "validate": false
 }
