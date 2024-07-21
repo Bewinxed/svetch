@@ -87,6 +87,35 @@ export type RecursiveJSONSchema = {
     required?: string[]
 }
 export interface APIPaths {
+  'api/prisma': {
+    POST: {
+      parameters: {
+        path?: never,
+        body: {
+  id?: string;
+  email: string;
+  name?: null | string;
+  password: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
+  posts?: {
+    
+  };
+},
+        query?: never,
+      },
+      responses: {
+        200: {
+  id: string;
+  email: string;
+  name: null | string;
+  password: string;
+  createdAt: Date;
+  updatedAt: Date;
+},
+      }
+    },
+  },
 };
 export interface ActionPaths {
 };
