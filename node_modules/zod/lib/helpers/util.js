@@ -30,8 +30,8 @@ var util;
             return obj[e];
         });
     };
-    util.objectKeys = typeof Object.keys === "function"
-        ? (obj) => Object.keys(obj)
+    util.objectKeys = typeof Object.keys === "function" // eslint-disable-line ban/ban
+        ? (obj) => Object.keys(obj) // eslint-disable-line ban/ban
         : (object) => {
             const keys = [];
             for (const key in object) {
@@ -49,7 +49,7 @@ var util;
         return undefined;
     };
     util.isInteger = typeof Number.isInteger === "function"
-        ? (val) => Number.isInteger(val)
+        ? (val) => Number.isInteger(val) // eslint-disable-line ban/ban
         : (val) => typeof val === "number" && isFinite(val) && Math.floor(val) === val;
     function joinValues(array, separator = " | ") {
         return array
@@ -69,7 +69,7 @@ var objectUtil;
     objectUtil.mergeShapes = (first, second) => {
         return {
             ...first,
-            ...second,
+            ...second, // second overwrites first
         };
     };
 })(objectUtil = exports.objectUtil || (exports.objectUtil = {}));
