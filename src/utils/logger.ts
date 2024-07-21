@@ -88,8 +88,8 @@ class Log {
   }
 
   error(nesting: number = 1, ...args: any[]) {
-    telemetryPayload.data.encountered_errors = true;
-    telemetryPayload.data.error_messages.push(args.join(' '));
+    // telemetryPayload.data.encountered_errors = true;
+    // telemetryPayload.data.error_messages.push(args.join(' '));
     if (this.logLevel >= 4 && (!this.filter || this.filter === 'error')) {
       this.log('red', nesting, '🚨 [ERROR]:	', ...args);
     }

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
-  import { Svetch } from "src/lib/api/client";
+  import { Svetch } from "src\lib\api\client";
   import { onMount } from "svelte";
   import { quintInOut } from "svelte/easing";
   import { fly, slide } from "svelte/transition";
