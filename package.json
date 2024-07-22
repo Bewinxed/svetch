@@ -1,6 +1,6 @@
 {
   "name": "svetch.ts",
-  "version": "1.0.40",
+  "version": "1.0.50",
   "include": [
     "src"
   ],
@@ -64,14 +64,17 @@
     "rootDir": "./src",
     "outDir": "./dist/esm",
     "moduleResolution": "esnext",
-    "esModuleInterop": true,     
+    "esModuleInterop": true,
     "skipLibCheck": true,
     "noEmit": true,
     "noEmitOnError": true
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
+    "@total-typescript/tsconfig": "^1.0.4",
     "@types/detective": "^5.1.5",
     "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.14.11",
     "@types/readline-sync": "^1.4.8",
     "@types/uuid": "^9.0.8",
     "detective-es6": "^4.0.1",

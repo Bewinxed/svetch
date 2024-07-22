@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { RecursiveJSONSchema } from "src\lib\api\api";
+  import type { RecursiveJSONSchema } from "src/lib/api/api";
 
   const typeColors: Record<string, string> = {
     string: "text-yellow-500",

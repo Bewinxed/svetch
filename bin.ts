@@ -1,10 +1,5 @@
 #!/usr/bin/env tsx
-"use strict";
-import { runAll } from "./src/generator";
+'use strict';
+import { runAll } from './src/index';
 
-runAll()
-
-
-
-
-
+runAll();

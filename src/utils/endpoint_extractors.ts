@@ -1,16 +1,18 @@
 import { Node, type TypeNode, type TypeChecker } from 'ts-morph';
 
-export function extractPayload(
-  allDeclarations: Node[],
-  typeChecker: TypeChecker
-) {
+export function extractPayloadTypeNode(
+  allDeclarations: Node[]
+): TypeNode | null {
   for (const node of allDeclarations) {
     if (Node.isVariableDeclaration(node)) {
       const initializer = node.getInitializer();
 
       // Check for 'payload =' declaration
       if (node.getName() === 'payload') {
-        return node;
+        if (Node.isAsExpression(initializer)) {
+          return initializer.getTypeNode() || null;
+        }
+        return node.getTypeNode() || null;
       }
 
       // Check for 'await request.json()' assignment, including with type assertion
@@ -21,7 +23,7 @@ export function extractPayload(
             Node.isCallExpression(awaitedExpression) &&
             awaitedExpression.getExpression().getText() === 'request.json'
           ) {
-            return node;
+            return node.getTypeNode() || null;
           }
         } else if (Node.isAsExpression(initializer)) {
           const expression = initializer.getExpression();
@@ -31,8 +33,11 @@ export function extractPayload(
               Node.isCallExpression(awaitedExpression) &&
               awaitedExpression.getExpression().getText() === 'request.json'
             ) {
-              return node;
+              return initializer.getTypeNode() || null;
             }
+          } else if (Node.isObjectLiteralExpression(expression)) {
+            // Handle cases like `{} as SomeType`
+            return initializer.getTypeNode() || null;
           }
         }
       }
@@ -44,7 +49,7 @@ export function extractPayload(
     if (Node.isVariableDeclaration(node)) {
       const initializer = node.getInitializer();
       if (initializer?.getFullText().includes('await request.json()')) {
-        return node;
+        return node.getTypeNode() || null;
       }
     }
   }
@@ -102,5 +107,3 @@ export function extractReturnType(
 
   return null;
 }
-
-
