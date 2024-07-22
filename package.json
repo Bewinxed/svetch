@@ -1,24 +1,30 @@
 {
   "name": "svetch.ts",
-  "version": "1.0.50",
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "dist",
-    "node_modules"
-  ],
+  "version": "2.0.0",
   "description": "End-to-End typesafe fetch client for your API",
-  "main": "dist/index.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "svetch": "./dist/bin.mjs"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
-    "build": "tsc src/index.ts",
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "prepublishOnly": "npm run build",
     "start": "tsx src/index.ts $PWD",
     "generate": "tsx bin.ts",
-    "dev": "tsx src/index.ts $PWD --watch",
     "init": "tsx init.ts"
-  },
-  "bin": {
-    "svetch.ts": "./bin.js"
   },
   "keywords": [
     "svelte",
@@ -38,8 +44,6 @@
   },
   "homepage": "https://github.com/Bewinxed/svetch#readme",
   "dependencies": {
-    "@iconify/svelte": "^3.1.6",
-    "@prisma/client": "5.17.0",
     "comment-parser": "^1.4.1",
     "inquirer": "^9.3.6",
     "json-schema-to-zod": "^1.2.0",
@@ -71,6 +75,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",
+    "@iconify/svelte": "^3.1.6",
+    "@prisma/client": "5.17.0",
     "@total-typescript/tsconfig": "^1.0.4",
     "@types/detective": "^5.1.5",
     "@types/inquirer": "^9.0.7",
@@ -78,6 +84,8 @@
     "@types/readline-sync": "^1.4.8",
     "@types/uuid": "^9.0.8",
     "detective-es6": "^4.0.1",
-    "heapdump": "^0.3.15"
+    "heapdump": "^0.3.15",
+    "prisma": "^5.17.0",
+    "unbuild": "^2.0.0"
   }
 }
