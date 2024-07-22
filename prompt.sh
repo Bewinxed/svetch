@@ -43,4 +43,8 @@ else
     echo "src/types directory not found" >> "$output_file"
 fi
 
+# add bin and index
+add_file_content "bin.ts"
+add_file_content "index.ts"
+
 echo "All files have been combined into $output_file"

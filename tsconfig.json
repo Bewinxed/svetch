@@ -1,33 +1,26 @@
 {
-  "extends": "@total-typescript/tsconfig/tsc/dom/library", // For a library
+  "extends": "@total-typescript/tsconfig/tsc/dom/library",
   "include": ["src/"],
-  "exclude": ["!src/"],
+  "exclude": ["dist", "node_modules"],
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"]
-      
     },
     "rootDir": "./src",
     "outDir": "./dist",
-    // Enable latest features
-    "lib": ["ESNext", "DOM", "dom.iterable"],
+    "lib": ["ESNext"],
     "target": "ESNext",
     "module": "ESNext",
+    "moduleResolution": "node",
     "moduleDetection": "force",
-    "moduleResolution": "Bundler",
-    "jsx": "react-jsx",
     "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-
-    // Best practices
     "strict": true,
     "skipLibCheck": true,
     "noFallthroughCasesInSwitch": true,
-
-    // Some stricter flags (disabled by default)
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "noPropertyAccessFromIndexSignature": false
+    "resolveJsonModule": true,
+    "declaration": true,
+    "sourceMap": true
   }
 }

@@ -20,6 +20,7 @@ import {
   SyntaxKind,
   type Type,
   TypeAliasDeclaration,
+  TypeChecker,
   type TypeNode,
   type TypeReferenceNode,
   VariableDeclaration,
@@ -33,7 +34,7 @@ import type {
 } from './types/core';
 import * as TJS from 'typescript-json-schema';
 import { v4 as uuidv4 } from 'uuid';
-import { footprintOfType } from './svelte-codegen';
+import { footprintOfType, type FootprintResult } from './svelte-codegen';
 import { log } from './utils/logger';
 import type { Telemetry } from './types/telemetry';
 import { extractPayloadTypeNode } from './utils/endpoint_extractors';
@@ -103,24 +104,15 @@ const endpoints: Map<string, MethodMap> = new Map();
 const actions: Record<string, Record<string, any>> = {};
 const importMap = {};
 
-const processedTypes = new Map<string, string>();
+function processTypeNode(node: TypeNode): FootprintResult {
+  const memoized = new WeakMap<TypeNode, FootprintResult>();
 
-interface ProcessTypeNodeResult {
-  typeString: string;
-  imports: Set<string>;
-}
-
-function processTypeNode(node: TypeNode): ProcessTypeNodeResult {
-  const typeText = node.getText();
-  const memoized = new WeakMap<TypeNode, ProcessTypeNodeResult>();
-
-  function processInner(innerNode: TypeNode): ProcessTypeNodeResult {
+  function processInner(innerNode: TypeNode): FootprintResult {
     if (memoized.has(innerNode)) {
-      return memoized.get(innerNode) as ProcessTypeNodeResult;
+      return memoized.get(innerNode) as FootprintResult;
     }
 
-    let result: ProcessTypeNodeResult;
-
+    let result: FootprintResult;
     if (
       Node.isTypeReference(innerNode) ||
       Node.hasStructure(innerNode)
@@ -135,9 +127,9 @@ function processTypeNode(node: TypeNode): ProcessTypeNodeResult {
       const processedObject = processObjectLiteral(
         innerNode as ObjectLiteralExpression
       );
-      result = { typeString: processedObject, imports: new Set() };
+      result = { typeRepresentation: processedObject, imports: new Set() };
     } else {
-      result = { typeString: innerNode.getText(), imports: new Set() };
+      result = { typeRepresentation: innerNode.getText(), imports: new Set() };
     }
 
     memoized.set(innerNode, result);
@@ -203,38 +195,39 @@ function getPropertyType(
   return typeChecker.getTypeAtLocation(initializer)?.getText() || 'any';
 }
 
-function extractPathParams(path: string) {
+function extractPathParams(path: string): Record<string, string> {
   const params = path.match(/:([^/]+)/g);
-  let pathParamsStr = '';
+  const pathParams: Record<string, string> = {};
 
   if (params) {
     for (const param of params) {
-      pathParamsStr += `${param.slice(1)}: string; `;
+      const paramName = param.slice(1);
+      pathParams[paramName] = 'string';
     }
   }
 
-  return `{ ${pathParamsStr} }`;
+  return pathParams;
 }
 
-function extractQueryParameters(declaration: FunctionDeclaration): string {
+function extractQueryParameters(
+  declaration: FunctionDeclaration,
+  typeChecker: TypeChecker
+) {
   const queryParameters: Record<string, string> = {};
 
-  let searchParamsVariables = new Set();
+  let searchParamsVariables = new Set<string>();
 
   declaration.forEachDescendant((node: Node) => {
     // Detect any declaration of url.searchParams and store the variable name
-    if (node.getKind() === SyntaxKind.VariableDeclaration) {
-      const variableDeclaration = node.asKindOrThrow(
-        SyntaxKind.VariableDeclaration
-      );
-      const initializer = variableDeclaration.getInitializer();
+    if (Node.isVariableDeclaration(node)) {
+      const initializer = node.getInitializer();
 
       if (initializer && Node.isPropertyAccessExpression(initializer)) {
         const expression = initializer.getExpression();
         const property = initializer.getName();
 
         if (expression.getText() === 'url' && property === 'searchParams') {
-          const variableName = variableDeclaration.getName();
+          const variableName = node.getName();
           searchParamsVariables.add(variableName);
         }
       }
@@ -254,18 +247,12 @@ function extractQueryParameters(declaration: FunctionDeclaration): string {
         ) {
           const args = node.getArguments();
 
-          if (
-            args.length > 0 &&
-            args[0].getKind() === SyntaxKind.StringLiteral
-          ) {
-            const queryParameterName = (
-              args[0] as StringLiteral
-            ).getLiteralText();
-            queryParameters[queryParameterName] = typeChecker
-              .getTypeAtLocation(
-                node.getFirstAncestorByKind(SyntaxKind.VariableDeclaration)
-              )
+          if (args.length > 0 && Node.isStringLiteral(args[0])) {
+            const queryParameterName = args[0].getLiteralText();
+            const paramType = typeChecker
+              .getTypeAtLocation(node.getParent())
               .getText();
+            queryParameters[queryParameterName] = paramType;
           }
         }
       } else if (Node.isElementAccessExpression(expression)) {
@@ -273,27 +260,20 @@ function extractQueryParameters(declaration: FunctionDeclaration): string {
 
         if (searchParamsVariables.has(expressionName)) {
           const argumentExpression = expression.getArgumentExpression();
-          if (
-            argumentExpression &&
-            argumentExpression.getKind() === SyntaxKind.StringLiteral
-          ) {
-            const queryParameterName = (
-              argumentExpression as StringLiteral
-            ).getLiteralText();
-            queryParameters[queryParameterName] = typeChecker
-              .getTypeAtLocation(argumentExpression)
+          if (argumentExpression && Node.isStringLiteral(argumentExpression)) {
+            const queryParameterName = argumentExpression.getLiteralText();
+            const paramType = typeChecker
+              .getTypeAtLocation(node.getParent())
               .getText();
+            queryParameters[queryParameterName] = paramType;
           }
         }
       }
     }
 
     // Get the type of the constant when the query string is assigned to it
-    if (node.getKind() === SyntaxKind.VariableDeclaration) {
-      const variableDeclaration = node.asKindOrThrow(
-        SyntaxKind.VariableDeclaration
-      );
-      const initializer = variableDeclaration.getInitializer();
+    if (Node.isVariableDeclaration(node)) {
+      const initializer = node.getInitializer();
 
       if (
         initializer &&
@@ -310,18 +290,16 @@ function extractQueryParameters(declaration: FunctionDeclaration): string {
             (object.getText() === 'url.searchParams' && property === 'get') ||
             (searchParamsVariables.has(object.getText()) && property === 'get')
           ) {
-            const variableType =
-              typeChecker.getTypeAtLocation(variableDeclaration);
-            const variableName = variableDeclaration.getName();
+            const variableType = typeChecker.getTypeAtLocation(node);
+            const variableName = node.getName();
             queryParameters[variableName] = variableType.getText();
           }
         } else if (Node.isElementAccessExpression(expression)) {
           const expressionName = expression.getExpression().getText();
 
           if (searchParamsVariables.has(expressionName)) {
-            const variableType =
-              typeChecker.getTypeAtLocation(variableDeclaration);
-            const variableName = variableDeclaration.getName();
+            const variableType = typeChecker.getTypeAtLocation(node);
+            const variableName = node.getName();
             queryParameters[variableName] = variableType.getText();
           }
         }
@@ -329,20 +307,12 @@ function extractQueryParameters(declaration: FunctionDeclaration): string {
     }
   });
 
-  let queryTypeString = '{ ';
-  for (const parameterName in queryParameters) {
-    // if nullable
-    queryTypeString += `${parameterName}${
-      queryParameters[parameterName].includes('null') ||
-      queryParameters[parameterName].includes('undefined') ||
-      queryParameters[parameterName].includes('never')
-        ? '?'
-        : ''
-    }: ${queryParameters[parameterName]}; `;
+  // if no query parameters, return undefined
+  if (Object.keys(queryParameters).length === 0) {
+    return;
   }
-  queryTypeString += '}';
 
-  return queryTypeString;
+  return queryParameters;
 }
 
 function warnIfResultsNotUsedInResponse(
@@ -594,29 +564,13 @@ function processFunctionDeclaration(
   endpoint.set(methodType, method);
 
   const pathParam = extractPathParams(apiPath);
-  const queryParams = extractQueryParameters(declaration);
+  const queryParams = extractQueryParameters(declaration, typeChecker);
 
-  const { typeString: bodyParam, imports: bodyImports } = payloadNode
-    ? processTypeNode(payloadNode)
-    : { typeString: 'never', imports: new Set<string>() };
-
-  if (methodType === 'GET' || methodType === 'DELETE') {
-    method.parameters = {
-      path: {
-        typeString: pathParam
-      },
-      query: {
-        typeString: queryParams
-      }
-    };
-  } else {
-    method.parameters = {
-      body: {
-        typeString: bodyParam,
-        imports: bodyImports
-      }
-    };
-  }
+  method.parameters = {
+    path: pathParam,
+    query: queryParams,
+    body: payloadNode ? processTypeNode(payloadNode) : undefined
+  };
 }
 
 // Helper functions
@@ -1281,9 +1235,32 @@ const generateApiTypes = (endpoints: Endpoints): string => {
         endpointDef.parameters
       )},\n`;
 
-      output += `      responses: ${generateResponsesType(
-        endpointDef.responses
-      )};\n`;
+      if (endpointDef.parameters?.body?.imports) {
+        for (const imp of endpointDef.parameters.body.imports) {
+          imports.add(imp);
+        }
+      }
+
+      if (endpointDef.responses) {
+        for (const [status, responses] of Object.entries(
+          endpointDef.responses
+        )) {
+          if (responses) {
+            for (const response of responses) {
+              if (response.imports) {
+                for (const imp of response.imports) {
+                  imports.add(imp);
+                }
+              }
+            }
+          }
+        }
+        output += `      responses: ${
+          endpointDef.responses
+            ? generateResponsesType(endpointDef.responses)
+            : 'never'
+        };\n`;
+      }
 
       if (endpointDef.errors && Object.keys(endpointDef.errors).length > 0) {
         output += `      errors: ${generateErrorsType(endpointDef.errors)};\n`;
@@ -1292,12 +1269,6 @@ const generateApiTypes = (endpoints: Endpoints): string => {
       }
 
       output += '    };\n';
-
-      if (endpointDef.imports) {
-        for (const imp of endpointDef.imports) {
-          imports.add(imp);
-        }
-      }
     }
 
     output += '  };\n';
@@ -1315,24 +1286,20 @@ const generateParametersType = (
 ): string => {
   if (!parameters) return 'undefined';
 
-  const result: Record<string, any> = {};
+  let output = '{\n';
 
-  for (const key of ['body', 'path', 'query'] as const) {
-    if (parameters[key]) {
-      if (typeof parameters[key] === 'string') {
-        // If it's already a string, use it directly
-        result[key] = parameters[key];
-      } else if (parameters[key].typeString) {
-        // If it has a typeString property, use that
-        result[key] = parameters[key].typeString;
-      } else {
-        // Fallback to stringifying the whole object
-        result[key] = JSON.stringify(parameters[key]);
-      }
-    }
+  if (parameters.body) {
+    output += `        body: ${parameters.body.typeString};\n`;
+  }
+  if (parameters.path) {
+    output += `        path: ${JSON.stringify(parameters.path)};\n`;
+  }
+  if (parameters.query) {
+    output += `        query: ${JSON.stringify(parameters.query)};\n`;
   }
 
-  return JSON.stringify(result);
+  output += '      }';
+  return output;
 };
 
 const generateResponsesType = (

@@ -1,6 +1,9 @@
-import path from 'node:path';
+import * as path from 'node:path';
 import { exec } from 'node:child_process';
 import inquirer from 'inquirer';
+import * as fs from 'node:fs';
+import { log } from './utils/logger';
+import { main } from './generator';
 const separator = '--------------------------------------';
 
 interface ScriptArgs {
@@ -61,13 +64,9 @@ function parseArgs(rawArgs: string[]): ScriptArgs {
   return { ...defaultArgs, ...parsedArgs };
 }
 
-import fs from 'fs';
-import { log } from './utils/logger';
-import { main } from './generator';
+const workingDir = process.env.PWD ?? process.cwd();
 
-const workingDir = process.env.PWD! ?? process.cwd();
-
-async function initSvetchrc() {
+export async function initSvetchrc() {
   // Check if the configuration file already exists
 
   console.log(`
@@ -132,40 +131,40 @@ Send any feedback or issues here 👉 https://github.com/Bewinxed/svetch/
   );
 }
 
-const packageJson = require(path.resolve(__dirname, '../package.json'));
+// const packageJson = require(path.resolve(__dirname, '../package.json'));
 
-function checkVersion() {
-  const packageName = packageJson.name;
-  const currentVersion = packageJson.version;
-  exec(`npm show ${packageName} version`, (err, stdout, stderr) => {
-    if (err) {
-      console.error(`exec error: ${err}`);
-      return;
-    }
+// function checkVersion() {
+//   const packageName = packageJson.name;
+//   const currentVersion = packageJson.version;
+//   exec(`npm show ${packageName} version`, (err, stdout, stderr) => {
+//     if (err) {
+//       console.error(`exec error: ${err}`);
+//       return;
+//     }
 
-    const latestVersion = stdout.trim();
+//     const latestVersion = stdout.trim();
 
-    // telemetryPayload.data.script_version = currentVersion;
+//     // telemetryPayload.data.script_version = currentVersion;
 
-    console.log(`Current version: ${currentVersion}`);
-    console.log(`Latest version: ${latestVersion}`);
+//     console.log(`Current version: ${currentVersion}`);
+//     console.log(`Latest version: ${latestVersion}`);
 
-    if (currentVersion !== latestVersion) {
-      console.log(`A newer version of ${packageName} is available.`);
-    } else {
-      console.log(`You are using the latest version of ${packageName}.`);
-    }
-  });
-}
+//     if (currentVersion !== latestVersion) {
+//       console.log(`A newer version of ${packageName} is available.`);
+//     } else {
+//       console.log(`You are using the latest version of ${packageName}.`);
+//     }
+//   });
+// }
 
 export function runAll() {
   if (isInit || !fs.existsSync(path.resolve(workingDir, '.svetchrc'))) {
     initSvetchrc().then(() => {
-      checkVersion();
+      // checkVersion();
       main(parseArgs(args));
     });
   } else {
-    checkVersion();
+    // checkVersion();
     main(parseArgs(args));
   }
 }

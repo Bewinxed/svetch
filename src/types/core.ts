@@ -1,18 +1,17 @@
 export interface FormattedType {
-  typeString: string;
+  typeString?: string;
   imports?: Set<string>;
 }
 
 export type EndpointDefinition = {
   parameters?: {
     body?: FormattedType;
-    path?: FormattedType;
-    query?: FormattedType;
+    path?: Record<string, any>;
+    query?: Record<string, any>;
   };
-  responses?: Partial<Record<number, any[]>>;
+  responses?: Partial<Record<number, FormattedType[]>>;
   errors?: Record<string, any[]>;
   docs?: string;
-  imports?: Set<string>;
 };
 
 export type Endpoints = Map<string, Map<HTTP_METHOD, EndpointDefinition>>;
