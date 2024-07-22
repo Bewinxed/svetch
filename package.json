@@ -1,9 +1,11 @@
 {
   "name": "svetch.ts",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "End-to-End typesafe fetch client for your API",
   "type": "module",
-  "main": "dist/index.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
     "svetch": "./dist/bin.js"
   },
@@ -70,7 +72,7 @@
     "@types/uuid": "^9.0.8",
     "detective-es6": "^4.0.1",
     "prisma": "^5.17.0",
-    "svetch.ts": "^2.0.1",
+    "svetch.ts": "2.0.3",
     "unbuild": "^2.0.0"
   }
 }
