@@ -64,7 +64,7 @@
     "rootDir": "./src",
     "outDir": "./dist/esm",
     "moduleResolution": "esnext",
-    "esModuleInterop": true,
+    "esModuleInterop": true,     
     "skipLibCheck": true,
     "noEmit": true,
     "noEmitOnError": true
