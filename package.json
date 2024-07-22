@@ -1,7 +1,7 @@
 {
   "author": "Omar Al Matar",
   "bin": {
-    "svetch": "./dist/src/bin.js"
+    "svetch.ts": "./dist/src/bin.js"
   },
   "bugs": {
     "url": "https://github.com/Bewinxed/svetch/issues"
@@ -28,7 +28,7 @@
     "detective-es6": "^4.0.1",
     "heapdump": "^0.3.15",
     "prisma": "^5.17.0",
-    "svetch.ts": "2.0.11",
+    "svetch.ts": "^2.0.13",
     "unbuild": "^2.0.0"
   },
   "exports": {
@@ -64,5 +64,5 @@
   },
   "type": "module",
   "types": "./dist/src/index.d.ts",
-  "version": "2.0.13"
+  "version": "2.0.14"
 }
