@@ -1,84 +1,28 @@
 {
-  "name": "svetch.ts",
-  "version": "2.0.11",
-  "description": "End-to-End typesafe fetch client for your API",
-  "type": "module",
-  "exports": {
-    ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.cjs"
-    }
-  },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
+  "author": "Omar Al Matar",
   "bin": {
     "svetch": "./dist/bin.mjs"
-  },
-  "files": [
-    "dist"
-  ],
-  "scripts": {
-    "build": "unbuild",
-    "dev": "unbuild --stub",
-    "start": "tsx src/index.ts $PWD",
-    "generate": "tsx bin.ts",
-    "init": "tsx init.ts"
-  },
-  "keywords": [
-    "svelte",
-    "sveltekit",
-    "typescript",
-    "fetch",
-    "typesafe"
-  ],
-  "author": "Omar Al Matar",
-  "license": "Paid",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Bewinxed/svetch"
   },
   "bugs": {
     "url": "https://github.com/Bewinxed/svetch/issues"
   },
-  "homepage": "https://github.com/Bewinxed/svetch#readme",
   "dependencies": {
     "comment-parser": "^1.4.1",
-    "inquirer": "^9.3.6",
-    "json-schema-to-zod": "^1.2.0",
-    "readline-sync": "^1.4.10",
+    "prompts": "^2.4.2",
     "ts-morph": "^19.0.0",
-    "tsx": "^3.14.0",
-    "typescript": "^5.5.3",
-    "typescript-json-schema": "^0.59.0",
-    "uuid": "^9.0.1",
-    "yargs": "^17.7.2",
-    "zod": "^3.23.8"
+    "typescript-json-schema": "^0.59.0"
   },
-  "compilerOptions": {
-    "module": "esnext",
-    "lib": [
-      "dom",
-      "esnext"
-    ],
-    "importHelpers": true,
-    "declaration": true,
-    "sourceMap": true,
-    "rootDir": "./src",
-    "outDir": "./dist/esm",
-    "moduleResolution": "esnext",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "noEmit": true,
-    "noEmitOnError": true
-  },
+  "description": "End-to-End typesafe fetch client for your API",
   "devDependencies": {
     "@biomejs/biome": "^1.8.3",
     "@prisma/client": "5.17.0",
+    "@swc/cli": "^0.4.0",
+    "@swc/core": "^1.7.0",
     "@total-typescript/tsconfig": "^1.0.4",
     "@types/detective": "^5.1.5",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^20.14.11",
+    "@types/prompts": "^2.4.9",
     "@types/readline-sync": "^1.4.8",
     "@types/uuid": "^9.0.8",
     "detective-es6": "^4.0.1",
@@ -86,5 +30,39 @@
     "prisma": "^5.17.0",
     "svetch.ts": "2.0.11",
     "unbuild": "^2.0.0"
-  }
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "homepage": "https://github.com/Bewinxed/svetch#readme",
+  "keywords": [
+    "svelte",
+    "sveltekit",
+    "typescript",
+    "fetch",
+    "typesafe"
+  ],
+  "license": "Paid",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "name": "svetch.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bewinxed/svetch"
+  },
+  "scripts": {
+    "build": "rm -rf dist && npx swc src -d dist && cp -r src/assets dist/src/assets",
+    "bump": "npm version patch",
+    "publish": "npm publish",
+    "yolo": "npm run bump && npm run build && npm run publish"
+  },
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "version": "2.0.12"
 }
