@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
 
-import { initSvetchrc } from './index';
+import { initSvetchrc } from './index.js';
 
 initSvetchrc();

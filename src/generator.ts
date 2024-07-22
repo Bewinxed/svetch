@@ -26,19 +26,23 @@ import {
   VariableDeclaration,
   type VariableStatement
 } from 'ts-morph';
-import type { Endpoints, HTTP_METHOD } from './types/core';
+import type { Endpoints, HTTP_METHOD } from './types/core.js';
 import type {
   EndpointDefinition,
   FormattedType,
   ScriptArgs
-} from './types/core';
+} from './types/core.js';
 import * as TJS from 'typescript-json-schema';
-import { v4 as uuidv4 } from 'uuid';
-import { footprintOfType, type FootprintResult } from './svelte-codegen';
-import { log } from './utils/logger';
-import type { Telemetry } from './types/telemetry';
-import { extractPayloadTypeNode } from './utils/endpoint_extractors';
 
+import { footprintOfType } from './svelte-codegen.js';
+import { log } from './utils/logger.js';
+import type { Telemetry } from './types/telemetry.js';
+import { extractPayloadTypeNode } from './utils/endpoint_extractors.js';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+
+const __dirname = path.dirname(__filename);
 const workingDir = process.env.PWD ?? process.cwd();
 
 const separator = '--------------------------------------';
@@ -53,12 +57,12 @@ const separator = '--------------------------------------';
 
 // this won't send if you disable telemetry
 let telemetryPayload: Telemetry = {
-  _id: uuidv4(),
+  _id: crypto.randomUUID(),
   // read from svelte.config.js
   project: workingDir.split('/').pop()!,
   timestamp: Date.now(),
   data: {
-    session_id: uuidv4(),
+    session_id: crypto.randomUUID(),
     script_name: 'svetch',
     operating_system: os.platform(),
     node_version: process.version,
@@ -104,15 +108,15 @@ const endpoints: Map<string, MethodMap> = new Map();
 const actions: Record<string, Record<string, any>> = {};
 const importMap = {};
 
-function processTypeNode(node: TypeNode): FootprintResult {
-  const memoized = new WeakMap<TypeNode, FootprintResult>();
+function processTypeNode(node: TypeNode): FormattedType {
+  const memoized = new WeakMap<TypeNode, FormattedType>();
 
-  function processInner(innerNode: TypeNode): FootprintResult {
+  function processInner(innerNode: TypeNode): FormattedType {
     if (memoized.has(innerNode)) {
-      return memoized.get(innerNode) as FootprintResult;
+      return memoized.get(innerNode) as FormattedType;
     }
 
-    let result: FootprintResult;
+    let result: FormattedType;
     if (
       Node.isTypeReference(innerNode) ||
       Node.hasStructure(innerNode)
@@ -127,9 +131,9 @@ function processTypeNode(node: TypeNode): FootprintResult {
       const processedObject = processObjectLiteral(
         innerNode as ObjectLiteralExpression
       );
-      result = { typeRepresentation: processedObject, imports: new Set() };
+      result = { typeString: processedObject, imports: new Set() };
     } else {
-      result = { typeRepresentation: innerNode.getText(), imports: new Set() };
+      result = { typeString: innerNode.getText(), imports: new Set() };
     }
 
     memoized.set(innerNode, result);
@@ -1451,7 +1455,7 @@ function generateActionsOutput() {
 
 function generateInterfaces() {
   const interfaces = fs
-    .readFileSync(path.resolve(__dirname, './utils/interfaces.ts'))
+    .readFileSync(path.resolve(__dirname, './assets/interfaces.ts'))
     .toString();
   output = interfaces + '\n' + output;
 
@@ -1482,7 +1486,7 @@ function generateInterfaces() {
 
 function generateClient() {
   const interfaces = fs
-    .readFileSync(path.resolve(__dirname, './utils/client.ts'))
+    .readFileSync(path.resolve(__dirname, './assets/client.ts'))
     .toString();
   output = interfaces + '\n' + output;
 
@@ -1622,7 +1626,7 @@ async function generateZodSchema() {
 
 function generateSvetchClient() {
   let client = fs
-    .readFileSync(path.resolve(__dirname, './utils/client.ts'))
+    .readFileSync(path.resolve(__dirname, './assets/client.ts'))
     .toString();
 
   // if the schema was generated, add it to the client
@@ -1641,16 +1645,16 @@ function generateSvetchClient() {
 
 function generateSvetchDocs() {
   const docs = fs
-    .readFileSync(path.resolve(__dirname, './static/docs/+page.svelte'))
+    .readFileSync(path.resolve(__dirname, './assets/docs/+page.svelte'))
     .toString()
     .replace(
       '[CLIENT_PATH]',
       path.join(workingDir, out, 'client').replace(workingDir, '').slice(1)
     );
-  // get all components inside the static/docs/components folder
+  // get all components inside the assets/docs/components folder
   const body_block = fs
     .readFileSync(
-      path.resolve(__dirname, './static/docs/components/BodyBlock.svelte')
+      path.resolve(__dirname, './assets/docs/components/BodyBlock.svelte')
     )
     .toString()
     .replace(
@@ -1659,11 +1663,11 @@ function generateSvetchDocs() {
     );
   const Collapsible = fs
     .readFileSync(
-      path.resolve(__dirname, './static/docs/components/Collapsible.svelte')
+      path.resolve(__dirname, './assets/docs/components/Collapsible.svelte')
     )
     .toString();
 
-  // get all components inside the static/docs/components folder
+  // get all components inside the assets/docs/components folder
   // create the folders
   if (!fs.existsSync(docsOutputPath)) {
     fs.mkdirSync(docsOutputPath, { recursive: true });

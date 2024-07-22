@@ -9,7 +9,7 @@ import {
   TypeFlags,
   TypeAliasDeclaration
 } from 'ts-morph';
-import type { FormattedType } from './types/core.js';
+import type { FormattedType } from '../types/core.js';
 
 const PRIMITIVE_TYPES = new Set([
   'string',
@@ -58,7 +58,7 @@ export function footprintOfType({
     const importInfo = getTypeImport(type, file);
 
     if (importInfo) {
-      // console.log(importInfo);
+      console.log(importInfo);
       return importInfo;
     }
     // If we can't import, fall back to 'any'
@@ -117,7 +117,7 @@ export function footprintOfType({
     const tupleResults = type
       .getTupleElements()
       .map((elementType) => next(elementType, flags));
-    const imports = new Set(tupleResults.flatMap((r) => r.imports ? Array.from(r.imports) : []));
+    const imports = new Set(tupleResults.flatMap((r) => Array.from(r.imports)));
     const typeString = `[\n${indent(
       tupleResults.map((r) => r.typeString).join(',\n')
     )}\n]`;

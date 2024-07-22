@@ -1,28 +1,14 @@
-# Compiled output
-dist/
-tmp/
-out-tsc/
-bazel-out/
+*-debug.log
+*-error.log
+**/.DS_Store
+/.idea
+/dist
+/tmp
+/node_modules
+oclif.manifest.json
 
-# Node
-node_modules/
-npm-debug.log
-yarn-error.log
 
-# Sass
-.sass-cache/
-*.css.map
-*.sass.map
-*.scss.map
+yarn.lock
+package-lock.json
 
-# Editor
-.idea/
-.vscode/
-*.swp
-*.swo
 
-# OS
-.DS_Store
-
-# Tests
-coverage/

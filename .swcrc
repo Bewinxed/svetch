@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json.schemastore.org/swcrc",
+  "jsc": {
+    "parser": {
+      "syntax": "typescript",
+      "dynamicImport": true,
+      "decorators": false
+    },
+    "target": "esnext",
+    "loose": true,
+    "externalHelpers": true,
+    "keepClassNames": false
+  },
+  
+  "module": {
+    "type": "es6",
+    "strict": false,
+    "strictMode": false,
+    "lazy": false,
+    "noInterop": false,
+    "resolveFully": true
+  },
+  "minify": false,
+  "sourceMaps": true,
+  "isModule": true,
+  "exclude": [
+    "node_modules",
+    "src/routes/**",
+    "src/routes",
+    "src/lib",
+    "src/assets"
+  ]
+}

@@ -1,4 +1,5 @@
 import type { APIPaths } from './api'
+import { schema } from './zod'
 import type { APIPaths } from './api'
 
 export type Fetch = (input: string | RequestInfo | URL, init?: RequestInit) => Promise<Response>

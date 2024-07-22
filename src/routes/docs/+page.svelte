@@ -68,7 +68,7 @@
     }
 
     try {
-      const { data, error, statusText } = await Svetch.request(
+      const { data, error, statusText } = await SvelteClient.request(
         endpoint,
         method,
         {

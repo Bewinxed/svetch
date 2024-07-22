@@ -1,9 +1,10 @@
 import * as path from 'node:path';
-import { exec } from 'node:child_process';
-import inquirer from 'inquirer';
 import * as fs from 'node:fs';
-import { log } from './utils/logger';
-import { main } from './generator';
+import prompts, { type PromptObject } from 'prompts';
+import { log } from './utils/logger.js';
+import { main } from './generator.js';
+import { performance } from 'perf_hooks';
+
 const separator = '--------------------------------------';
 
 interface ScriptArgs {
@@ -16,16 +17,6 @@ interface ScriptArgs {
   logLevel?: number;
   filter?: string | null;
   telemetry: boolean;
-}
-
-function readSvetchrc() {
-  try {
-    const config = fs.readFileSync('.svetchrc', 'utf8');
-    return JSON.parse(config);
-  } catch (error) {
-    console.error('Error reading .svetchrc file:', error);
-    process.exit(1);
-  }
 }
 
 const defaultArgs: ScriptArgs = {
@@ -43,15 +34,12 @@ const defaultArgs: ScriptArgs = {
 const isInit = process.argv[2] === 'init';
 
 // Get the command-line arguments
-const args: string[] = process.argv.slice(3); // Exclude the first two elements (node binary and script file path)
+const args: string[] = process.argv.slice(3);
 
 function parseArgs(rawArgs: string[]): ScriptArgs {
-  // Check if .svetchrc file exists
   const svetchrcExists = fs.existsSync('.svetchrc');
-  // Use .svetchrc file if it exists
   const parsedArgs = svetchrcExists ? readSvetchrc() : {};
 
-  // Parse command-line arguments
   for (let i = 0; i < rawArgs.length; i += 2) {
     const argName = rawArgs[i]?.replace('--', '');
     const argValue = rawArgs[i + 1];
@@ -60,15 +48,12 @@ function parseArgs(rawArgs: string[]): ScriptArgs {
     }
   }
 
-  // Merge parsed arguments with default values
   return { ...defaultArgs, ...parsedArgs };
 }
 
 const workingDir = process.env.PWD ?? process.cwd();
 
 export async function initSvetchrc() {
-  // Check if the configuration file already exists
-
   console.log(`
   _____               _          _     
  / ____|             | |        | |    
@@ -89,38 +74,40 @@ Send any feedback or issues here 👉 https://github.com/Bewinxed/svetch/
     console.log('Existing .svetchrc file has been renamed to .svetchrc.backup');
   }
 
-  // Ask for configuration options
-  const responses: ScriptArgs = await inquirer.prompt([
-    // {
-    //   name: 'framework',
-    //   message: 'What is your framework?',
-    //   default: defaultArgs.framework,
-    // },
+  const questions: PromptObject[] = [
     {
+      type: 'text',
       name: 'input',
-      message: `Which folder would you like svetch to scan for API routes? - default: ${defaultArgs.input}`,
-      default: defaultArgs.input
+      message: 'Which folder would you like svetch to scan for API routes?',
+      initial: defaultArgs.input
     },
     {
+      type: 'text',
       name: 'out',
-      message: `${separator}\nWhere would you like svetch to output the generated API files? (The Client/Types/Zod Schemas will be written here) - default: ${defaultArgs.out}`,
-      default: defaultArgs.out
+      message:
+        'Where would you like svetch to output the generated API files? (The Client/Types/Zod Schemas will be written here)',
+      initial: defaultArgs.out
     },
     {
+      type: 'text',
       name: 'docs',
-      message: `${separator}\nWhere would you like svetch to output the generated API documentation? - default: ${defaultArgs.docs}`,
-      default: defaultArgs.docs
+      message:
+        'Where would you like svetch to output the generated API documentation?',
+      initial: defaultArgs.docs
     },
     {
+      type: 'text',
       name: 'staticFolder',
-      message: `${separator}\nWhere is your static folder located?\n - default: ${defaultArgs.staticFolder}`,
-      default: defaultArgs.staticFolder
+      message: 'Where is your static folder located?',
+      initial: defaultArgs.staticFolder
     }
-  ]);
+  ];
+
+  const response = await prompts(questions);
 
   fs.writeFileSync(
     '.svetchrc',
-    JSON.stringify({ ...defaultArgs, ...responses }, null, 2)
+    JSON.stringify({ ...defaultArgs, ...response }, null, 2)
   );
   log.success(
     1,
@@ -131,40 +118,42 @@ Send any feedback or issues here 👉 https://github.com/Bewinxed/svetch/
   );
 }
 
-// const packageJson = require(path.resolve(__dirname, '../package.json'));
+function measureTime(fn: () => void, label: string) {
+  const start = performance.now();
+  fn();
+  const end = performance.now();
+  console.log(`${label} took ${(end - start).toFixed(2)}ms`);
+}
 
-// function checkVersion() {
-//   const packageName = packageJson.name;
-//   const currentVersion = packageJson.version;
-//   exec(`npm show ${packageName} version`, (err, stdout, stderr) => {
-//     if (err) {
-//       console.error(`exec error: ${err}`);
-//       return;
-//     }
+function readSvetchrc() {
+  return measureTime(() => {
+    try {
+      const config = fs.readFileSync('.svetchrc', 'utf8');
+      return JSON.parse(config);
+    } catch (error) {
+      console.error('Error reading .svetchrc file:', error);
+      process.exit(1);
+    }
+  }, 'Reading .svetchrc');
+}
 
-//     const latestVersion = stdout.trim();
+export async function runAll() {
+  const start = performance.now();
 
-//     // telemetryPayload.data.script_version = currentVersion;
-
-//     console.log(`Current version: ${currentVersion}`);
-//     console.log(`Latest version: ${latestVersion}`);
-
-//     if (currentVersion !== latestVersion) {
-//       console.log(`A newer version of ${packageName} is available.`);
-//     } else {
-//       console.log(`You are using the latest version of ${packageName}.`);
-//     }
-//   });
-// }
-
-export function runAll() {
   if (isInit || !fs.existsSync(path.resolve(workingDir, '.svetchrc'))) {
-    initSvetchrc().then(() => {
-      // checkVersion();
+    await measureTime(async () => {
+      await initSvetchrc();
+    }, 'Initializing Svetchrc');
+
+    measureTime(() => {
       main(parseArgs(args));
-    });
+    }, 'Running main function');
   } else {
-    // checkVersion();
-    main(parseArgs(args));
+    measureTime(() => {
+      main(parseArgs(args));
+    }, 'Running main function');
   }
+
+  const end = performance.now();
+  console.log(`Total execution time: ${(end - start).toFixed(2)}ms`);
 }
