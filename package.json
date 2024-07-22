@@ -1,7 +1,7 @@
 {
   "author": "Omar Al Matar",
   "bin": {
-    "svetch": "./dist/bin.mjs"
+    "svetch": "./dist/src/bin.js"
   },
   "bugs": {
     "url": "https://github.com/Bewinxed/svetch/issues"
@@ -49,8 +49,8 @@
     "typesafe"
   ],
   "license": "Paid",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
+  "main": "./dist/src/index.js",
+  "module": "./dist/src/index.js",
   "name": "svetch.ts",
   "repository": {
     "type": "git",
@@ -63,6 +63,6 @@
     "yolo": "npm run bump && npm run build && npm run publish"
   },
   "type": "module",
-  "types": "./dist/index.d.ts",
-  "version": "2.0.12"
+  "types": "./dist/src/index.d.ts",
+  "version": "2.0.13"
 }
