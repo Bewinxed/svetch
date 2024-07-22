@@ -1,21 +1,28 @@
 {
   "name": "svetch.ts",
-  "version": "2.0.5",
+  "version": "2.0.3",
   "description": "End-to-End typesafe fetch client for your API",
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "bin": {
-    "svetch": "./dist/bin.js"
+    "svetch": "./dist/bin.cjs"
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "rm -rf dist && tsc",
-    "start": "node dist/index.js",
-    "dev": "tsc --watch",
+    "build": "unbuild",
+    "dev": "unbuild --stub",
+    "prepublishOnly": "npm run build",
+    "start": "tsx src/index.ts $PWD",
     "generate": "tsx bin.ts",
     "init": "tsx init.ts"
   },
@@ -40,11 +47,13 @@
     "comment-parser": "^1.4.1",
     "inquirer": "^9.3.6",
     "json-schema-to-zod": "^1.2.0",
+    "readline-sync": "^1.4.10",
     "ts-morph": "^19.0.0",
     "tsx": "^3.14.0",
     "typescript": "^5.5.3",
     "typescript-json-schema": "^0.59.0",
     "uuid": "^9.0.1",
+    "yargs": "^17.7.2",
     "zod": "^3.23.8"
   },
   "compilerOptions": {
@@ -65,14 +74,18 @@
     "noEmitOnError": true
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
     "@prisma/client": "5.17.0",
     "@total-typescript/tsconfig": "^1.0.4",
+    "@types/detective": "^5.1.5",
     "@types/inquirer": "^9.0.7",
     "@types/node": "^20.14.11",
+    "@types/readline-sync": "^1.4.8",
     "@types/uuid": "^9.0.8",
     "detective-es6": "^4.0.1",
+    "heapdump": "^0.3.15",
     "prisma": "^5.17.0",
-    "svetch.ts": "2.0.3",
+    "svetch.ts": "^2.0.1",
     "unbuild": "^2.0.0"
   }
 }
