@@ -1,6 +1,6 @@
 {
   "name": "svetch.ts",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "End-to-End typesafe fetch client for your API",
   "type": "module",
   "exports": {
