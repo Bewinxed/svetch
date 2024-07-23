@@ -12,6 +12,7 @@ export type EndpointDefinition = {
   responses?: Partial<Record<number, FormattedType[]>>;
   errors?: Record<string, any[]>;
   docs?: string;
+  imports?: Set<string>;
 };
 
 export type Endpoints = Map<string, Map<HTTP_METHOD, EndpointDefinition>>;

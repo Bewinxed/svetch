@@ -1,51 +1,56 @@
-import * as commentParser from 'comment-parser';
-import * as fs from 'node:fs';
-import { parseSchema } from 'json-schema-to-zod';
-import * as os from 'node:os';
-import * as path from 'node:path';
+import * as commentParser from "comment-parser";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 
 import {
   type CallExpression,
+  type CallLikeExpression,
   type CatchClause,
   type ExportedDeclarations,
   FunctionDeclaration,
   type Identifier,
   type ImportDeclaration,
+  type NewExpression,
   Node,
   type ObjectLiteralExpression,
   Project,
   type PropertyAssignment,
   type SourceFile,
-  type StringLiteral,
   SyntaxKind,
-  type Type,
-  TypeAliasDeclaration,
-  TypeChecker,
+  ts,
+  type TypeAliasDeclaration,
+  type TypeChecker,
   type TypeNode,
   type TypeReferenceNode,
-  VariableDeclaration,
-  type VariableStatement
-} from 'ts-morph';
-import type { Endpoints, HTTP_METHOD } from './types/core.js';
+  type VariableDeclaration,
+  type VariableStatement,
+} from "ts-morph";
+import * as TJS from "typescript-json-schema";
 import type {
   EndpointDefinition,
   FormattedType,
-  ScriptArgs
-} from './types/core.js';
-import * as TJS from 'typescript-json-schema';
+  HTTP_METHOD,
+  ScriptArgs,
+} from "./types/core.js";
 
-import { footprintOfType } from './svelte-codegen.js';
-import { log } from './utils/logger.js';
-import type { Telemetry } from './types/telemetry.js';
-import { extractPayloadTypeNode } from './utils/endpoint_extractors.js';
-import { fileURLToPath } from 'url';
+import ansiColors from "ansi-colors";
+import { Presets, SingleBar } from "cli-progress";
+import { fileURLToPath } from "node:url";
+import ora, { oraPromise, type Ora } from "ora";
+import { footprintOfType } from "./svelte-codegen.js";
+import type { Telemetry } from "./types/telemetry.js";
+import { extractPayloadTypeNode } from "./utils/endpoint_extractors.js";
+import { log } from "./utils/logger.js";
+import { spinner } from "./utils/ux/spinner.js";
+import { inspect } from "node:util";
 
 const __filename = fileURLToPath(import.meta.url);
 
 const __dirname = path.dirname(__filename);
 const workingDir = process.env.PWD ?? process.cwd();
 
-const separator = '--------------------------------------';
+const separator = "--------------------------------------";
 
 // process.on('SIGUSR2', function () {
 //   const snapshotFile = '/path/to/your/project/heap-' + Date.now() + '.heapsnapshot';
@@ -56,17 +61,17 @@ const separator = '--------------------------------------';
 // });
 
 // this won't send if you disable telemetry
-let telemetryPayload: Telemetry = {
+const telemetryPayload: Telemetry = {
   _id: crypto.randomUUID(),
   // read from svelte.config.js
-  project: workingDir.split('/').pop()!,
+  project: workingDir.split("/").pop()!,
   timestamp: Date.now(),
   data: {
     session_id: crypto.randomUUID(),
-    script_name: 'svetch',
+    script_name: "svetch",
     operating_system: os.platform(),
     node_version: process.version,
-    npm_version: process.env.npm_package_version || 'unknown',
+    npm_version: process.env.npm_package_version || "unknown",
     encountered_errors: false,
     error_messages: [],
     processed_files_count: 0,
@@ -76,9 +81,9 @@ let telemetryPayload: Telemetry = {
       GET: 0,
       PUT: 0,
       PATCH: 0,
-      DELETE: 0
-    }
-  }
+      DELETE: 0,
+    },
+  },
 };
 
 let {
@@ -90,12 +95,12 @@ let {
   filter,
   docs,
   staticFolder,
-  telemetry
+  telemetry,
 } = {} as ScriptArgs;
 
 const project = new Project({
   compilerOptions: { allowJs: true },
-  tsConfigFilePath: tsconfig
+  tsConfigFilePath: tsconfig,
 });
 
 const typeChecker = project.getTypeChecker();
@@ -125,7 +130,8 @@ function processTypeNode(node: TypeNode): FormattedType {
       result = footprintOfType({
         file: innerNode.getSourceFile(),
         type: innerNode.getType(),
-        node: innerNode
+        node: innerNode,
+        typeChecker: typeChecker,
       });
     } else if (Node.isObjectLiteralExpression(innerNode)) {
       const processedObject = processObjectLiteral(
@@ -173,7 +179,7 @@ function getPropertyKeyName(property: PropertyAssignment): string | undefined {
     }
     return property.getName();
   } catch (e) {
-    console.error('Error getting property name:', e);
+    console.error("Error getting property name:", e);
     return property.getName();
   }
 }
@@ -187,16 +193,16 @@ function getPropertyType(
     apiParams[node.getSourceFile().getFilePath()] &&
     apiParams[node.getSourceFile().getFilePath()]
       .getText()
-      .includes(initializer?.getText().replace('params.', ''))
+      .includes(initializer?.getText().replace("params.", ""))
   ) {
-    return 'string';
+    return "string";
   }
 
   if (Node.isPropertyAccessExpression(initializer)) {
-    return typeChecker.getTypeAtLocation(property).getText() || 'any';
+    return typeChecker.getTypeAtLocation(property).getText() || "any";
   }
 
-  return typeChecker.getTypeAtLocation(initializer)?.getText() || 'any';
+  return typeChecker.getTypeAtLocation(initializer)?.getText() || "any";
 }
 
 function extractPathParams(path: string): Record<string, string> {
@@ -206,7 +212,7 @@ function extractPathParams(path: string): Record<string, string> {
   if (params) {
     for (const param of params) {
       const paramName = param.slice(1);
-      pathParams[paramName] = 'string';
+      pathParams[paramName] = "string";
     }
   }
 
@@ -215,6 +221,7 @@ function extractPathParams(path: string): Record<string, string> {
 
 function extractQueryParameters(
   declaration: FunctionDeclaration,
+  method: EndpointDefinition,
   typeChecker: TypeChecker
 ) {
   const queryParameters: Record<string, string> = {};
@@ -230,7 +237,7 @@ function extractQueryParameters(
         const expression = initializer.getExpression();
         const property = initializer.getName();
 
-        if (expression.getText() === 'url' && property === 'searchParams') {
+        if (expression.getText() === "url" && property === "searchParams") {
           const variableName = node.getName();
           searchParamsVariables.add(variableName);
         }
@@ -246,8 +253,8 @@ function extractQueryParameters(
         const property = expression.getName();
 
         if (
-          (object.getText() === 'url.searchParams' && property === 'get') ||
-          (searchParamsVariables.has(object.getText()) && property === 'get')
+          (object.getText() === "url.searchParams" && property === "get") ||
+          (searchParamsVariables.has(object.getText()) && property === "get")
         ) {
           const args = node.getArguments();
 
@@ -266,10 +273,18 @@ function extractQueryParameters(
           const argumentExpression = expression.getArgumentExpression();
           if (argumentExpression && Node.isStringLiteral(argumentExpression)) {
             const queryParameterName = argumentExpression.getLiteralText();
-            const paramType = typeChecker
-              .getTypeAtLocation(node.getParent())
-              .getText();
-            queryParameters[queryParameterName] = paramType;
+            const paramType = footprintOfType({
+              file: node.getSourceFile(),
+              type: typeChecker.getTypeAtLocation(node),
+              node: node,
+            });
+            method.imports ??= new Set();
+            if (paramType.imports) {
+              for (const imp of paramType.imports) {
+                method.imports.add(imp);
+              }
+            }
+            queryParameters[queryParameterName] = paramType.typeString;
           }
         }
       }
@@ -291,8 +306,8 @@ function extractQueryParameters(
           const property = expression.getName();
 
           if (
-            (object.getText() === 'url.searchParams' && property === 'get') ||
-            (searchParamsVariables.has(object.getText()) && property === 'get')
+            (object.getText() === "url.searchParams" && property === "get") ||
+            (searchParamsVariables.has(object.getText()) && property === "get")
           ) {
             const variableType = typeChecker.getTypeAtLocation(node);
             const variableName = node.getName();
@@ -322,7 +337,7 @@ function extractQueryParameters(
 function warnIfResultsNotUsedInResponse(
   declaration: FunctionDeclaration
 ): void {
-  const resultsName = 'results';
+  const resultsName = "results";
   let isResultsUsedInResponse = false;
 
   declaration.forEachDescendant((node: Node) => {
@@ -332,7 +347,7 @@ function warnIfResultsNotUsedInResponse(
       // Check if the call expression is 'json' or 'Response'
       if (
         Node.isIdentifier(expression) &&
-        (expression.getText() === 'json' || expression.getText() === 'Response')
+        (expression.getText() === "json" || expression.getText() === "Response")
       ) {
         // Check if 'results' is used in the arguments
         const args = node.getArguments();
@@ -379,7 +394,7 @@ function extractCatchThrowDetails(
           Node.isNumericLiteral(args[0]) &&
           Node.isTemplateExpression(args[1])
         ) {
-          let type = 'unknown';
+          let type = "unknown";
           const catchClause = node as CatchClause;
           const errorVariableDeclaration = catchClause.getVariableDeclaration();
           if (errorVariableDeclaration) {
@@ -390,8 +405,8 @@ function extractCatchThrowDetails(
           }
           return {
             status: args[0].getText(),
-            message: args[1].getText().replace('${e}', type),
-            type
+            message: args[1].getText().replace("${e}", type),
+            type,
           };
         }
       }
@@ -412,7 +427,7 @@ function extractCatchThrowDetails(
         return {
           status: statusCode,
           message,
-          type: 'unknown'
+          type: "unknown",
         };
       }
     }
@@ -426,42 +441,30 @@ const apiParams: Record<string, TypeNode> = {};
 function extractRootDirTypes(
   declaration: FunctionDeclaration | VariableDeclaration
 ) {
-  if (framework === 'sveltekit') {
+  if (framework === "sveltekit") {
     const requestEventTypePath = path.resolve(
       workingDir,
       declaration
         .getSourceFile()
         .getFilePath()
-        .replace(workingDir, '.svelte-kit/types')
-        .replace('/+server.ts', '/$types.d.ts')
+        .replace(workingDir, ".svelte-kit/types")
+        .replace("/+server.ts", "/$types.d.ts")
     );
 
     if (!fs.existsSync(requestEventTypePath)) {
-      log.warn(
-        3,
+      spinner.warn(
         `No $types.d.ts found, Make sure you "npm run dev" at least once, or route params will not be typed`
-      );
-      return;
-    }
-
-    log.info(3, `[SVELTEKIT]: Looking for $types.d.ts`);
-
-    if (!requestEventTypePath) {
-      log.error(
-        3,
-        `No generated $types.d.ts found, make sure you run 'npm run dev' once at least...`
       );
       return;
     }
 
     const routeParamsType = project
       .addSourceFileAtPath(requestEventTypePath)
-      ?.getTypeAlias('RouteParams');
+      ?.getTypeAlias("RouteParams");
 
     if (!routeParamsType) {
-      log.error(
-        3,
-        `No RequestEvent found in types.d.ts, make sure you run 'npm run dev' once at least...`
+      spinner.warn(
+        `No $types.d.ts found, Make sure you "npm run dev" at least once, or route params will not be typed`
       );
       return;
     }
@@ -485,107 +488,82 @@ function tryParseJsDocComment(comment: string) {
 }
 
 function processFunctionDeclaration(
-  declaration: FunctionDeclaration | VariableDeclaration
-) {
+  declaration: FunctionDeclaration | VariableDeclaration,
+  spinner: Ora
+): void {
   const file = declaration.getSourceFile();
-  const methodType = declaration.getName();
-  if (
-    methodType !== 'GET' &&
-    methodType !== 'POST' &&
-    methodType !== 'PUT' &&
-    methodType !== 'PATCH' &&
-    methodType !== 'DELETE'
-  ) {
-    log.warn(
-      2,
-      `Unsupported method type ${methodType} in ${file.getFilePath()}`
-    );
-    return;
-  }
+  const methodType = declaration.getName() as HTTP_METHOD;
 
-  const filePath = declaration.getSourceFile().getFilePath();
+  const filePath = file.getFilePath();
   const apiPath = processFilePath(filePath);
 
-  let endpoint = endpoints.get(apiPath);
-  if (!endpoint) {
-    endpoint = new Map();
-    endpoints.set(apiPath, endpoint);
-  }
+  const endpoint =
+    endpoints.get(apiPath) ||
+    (endpoints.set(apiPath, new Map()).get(apiPath) as MethodMap);
 
-  log.header(2, `${methodType}`);
+  spinner.text = ` | ${methodType}`;
 
   const allDeclarations = getAllDeclarations(declaration);
-  if (!allDeclarations || allDeclarations.length === 0) {
-    log.error(3, `No declarations found`);
+  // log all declaration names
+  if (!allDeclarations?.length) {
+    spinner.fail("No declarations found");
     return;
   }
 
-  if (framework === 'sveltekit') {
+  if (framework === "sveltekit") {
     extractRootDirTypes(declaration);
   }
 
   const payloadNode = extractPayloadTypeNode(allDeclarations);
-  if (payloadNode) {
-    log.success(3, 'Detected payload declaration');
-  } else {
-    log.warn(
-      3,
-      `No payload declaration found for ${methodType} method in ${file.getFilePath()}`
-    );
-  }
+  payloadNode
+    ? spinner.info("Detected request body")
+    : spinner.warn(
+        `No request body declaration found for ${methodType} method in ${filePath}`
+      );
 
   const jsdoc = extractJSDoc(declaration);
 
-  let method = endpoint.get(methodType);
-  if (!method) {
-    method = {};
-    endpoint.set(methodType, method);
-  }
+  const method =
+    endpoint.get(methodType) ||
+    (endpoint.set(methodType, {}).get(methodType) as EndpointDefinition);
 
-  if (jsdoc.length > 0 && jsdoc[0]?.[0]) {
-    method.docs = commentParser.stringify(jsdoc[0][0]);
-  }
+  method.parameters = {
+    path: extractPathParams(apiPath),
+    query: extractQueryParameters(declaration, method, typeChecker),
+    body: payloadNode ? processTypeNode(payloadNode) : undefined,
+  };
+  method.docs = jsdoc[0]?.[0]
+    ? commentParser.stringify(jsdoc[0][0])
+    : undefined;
 
-  const { status, resultsDeclaration, addedResponses } = processDeclarations(
+  const { resultsDeclaration } = processDeclarations(
     allDeclarations,
-    method
+    method,
+    spinner
   );
 
   if (!resultsDeclaration) {
-    log.warn(
-      2,
-      `No results declaration found for ${methodType} method in ${file.getFilePath()}`
+    spinner.warn(
+      `No response body found for ${methodType} method in ${filePath}, (Declare this using const results = {...}, new Response(...), or json(...))`
     );
   }
 
-  if (['POST', 'PUT', 'PATCH'].includes(methodType) && !payloadNode) {
-    log.warn(
-      2,
-      `No payload declaration found for ${methodType} method in ${file.getFilePath()}`
+  if (["POST", "PUT", "PATCH"].includes(methodType) && !payloadNode) {
+    spinner.warn(
+      `No payload declaration found for ${methodType} method in ${filePath}, (Declare this using const payload = {...} as TYPE`
     );
   }
-
-  endpoint.set(methodType, method);
-
-  const pathParam = extractPathParams(apiPath);
-  const queryParams = extractQueryParameters(declaration, typeChecker);
-
-  method.parameters = {
-    path: pathParam,
-    query: queryParams,
-    body: payloadNode ? processTypeNode(payloadNode) : undefined
-  };
 }
 
 // Helper functions
 
 function processFilePath(filePath: string): string {
   return filePath
-    .replace(workingDir, '')
-    .replace('/src/routes', '')
-    .replace('/+server.ts', '')
-    .replace('/', '')
-    .replace(/\[([^\]]+)\]/g, ':$1');
+    .replace(workingDir, "")
+    .replace("/src/routes", "")
+    .replace("/+server.ts", "")
+    .replace("/", "")
+    .replace(/\[([^\]]+)\]/g, ":$1");
 }
 
 function getAllDeclarations(
@@ -594,21 +572,6 @@ function getAllDeclarations(
   return declaration instanceof FunctionDeclaration
     ? declaration.getDescendants()
     : declaration.getInitializer()?.getDescendants();
-}
-
-function logPayloadDetection(
-  payloadNode: Node | undefined,
-  methodType: string,
-  file: SourceFile
-) {
-  if (payloadNode) {
-    log.success(3, 'Detected payload declaration');
-  } else {
-    log.warn(
-      3,
-      `No payload declaration found for ${methodType} method in ${file.getFilePath()}`
-    );
-  }
 }
 
 function extractJSDoc(declaration: FunctionDeclaration | VariableDeclaration) {
@@ -621,77 +584,90 @@ function extractJSDoc(declaration: FunctionDeclaration | VariableDeclaration) {
       (jsdoc) =>
         jsdoc &&
         jsdoc.length > 0 &&
-        jsdoc[0]?.tags.some((tag) => tag.tag === 'svetch')
+        jsdoc[0]?.tags.some((tag) => tag.tag === "svetch")
     );
 }
 
 function processDeclarations(
   allDeclarations: Node[],
-  method: EndpointDefinition
-) {
+  method: EndpointDefinition,
+  spinner: Ora
+): { status: number; resultsDeclaration?: TypeReferenceNode } {
   let status = 200;
   let resultsDeclaration: TypeReferenceNode | undefined;
-  const addedResponses = new Set<string>();
 
-  // biome-ignore lint/complexity/noForEach: <explanation>
-  allDeclarations.forEach((node: Node) => {
+  for (const node of allDeclarations) {
     if (Node.isReturnStatement(node)) {
-      const result = processReturnStatement(node, status, resultsDeclaration);
+      const result = processReturnStatement(
+        node,
+        status,
+        resultsDeclaration,
+        spinner
+      );
       if (result) {
         ({ status, resultsDeclaration } = result);
       }
     } else if (
       Node.isVariableDeclaration(node) &&
-      node.getName() === 'results'
+      node.getName() === "results"
     ) {
       resultsDeclaration = processReturnVariable(resultsDeclaration, node);
     }
 
-    if (resultsDeclaration) {
-      const processedResponse = processTypeNode(resultsDeclaration);
-      const responseString = JSON.stringify(processedResponse);
-      if (!addedResponses.has(responseString)) {
-        if (!method.responses) {
-          method.responses = {};
-        }
-        if (!method.responses[status]) {
-          method.responses[status] = [];
-        }
-        // biome-ignore lint/style/noNonNullAssertion: <explanation>
-        method.responses[status]!.push(processedResponse);
-        addedResponses.add(responseString);
-      }
-    }
     processThrowDetails(node, method);
-  });
+  }
 
-  return { status, resultsDeclaration, addedResponses };
+  if (resultsDeclaration) {
+    const processedResponse = processTypeNode(resultsDeclaration);
+    method.responses ??= {};
+    method.responses[status] ??= [];
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
+    method.responses[status]!.push(processedResponse);
+  }
+
+  return { status, resultsDeclaration };
+}
+
+function node_text_snippet(node: Node) {
+  const text = node.getText();
+  const start = Math.max(0, text.lastIndexOf("\n", 100));
+  const end = Math.min(text.length, text.indexOf("\n", 100));
+  return text.slice(start, end);
 }
 
 function processReturnStatement(
   node: Node,
   status: number,
-  resultsDeclaration: TypeReferenceNode | undefined
+  resultsDeclaration: TypeReferenceNode | undefined,
+  spinner: Ora
 ) {
-  const expression = node.getExpression();
+  const expression: Node = node.getExpression();
   if (!expression) {
-    log.error(3, 'Detected return statement without expression');
+    spinner.warn(
+      `Detected return statement without expression ${node_text_snippet(node)}`
+    );
     return null;
   }
 
   if (
-    !node.getText().includes('json') &&
-    !node.getText().includes('Response')
+    !node.getText().includes("json") &&
+    !node.getText().includes("Response")
   ) {
-    log.error(
-      3,
-      `Detected return statement (${expression.getText()}) without json() or new Response() constructor, Skipping...`
+    spinner.warn(
+      `Detected return statement (${node_text_snippet(
+        expression
+      )}) without json() or new Response() constructor, Skipping...`
     );
     return null;
   }
 
   if (Node.isCallExpression(expression) || Node.isNewExpression(expression)) {
-    return processReturnExpression(expression, status, resultsDeclaration);
+    return processReturnExpression(
+      expression,
+      status,
+      resultsDeclaration,
+      spinner
+    );
   }
   if (Node.isIdentifier(expression)) {
     return {
@@ -699,11 +675,10 @@ function processReturnStatement(
       resultsDeclaration: processReturnIdentifier(
         expression,
         resultsDeclaration
-      )
+      ),
     };
   }
-  log.warn(
-    3,
+  spinner.warn(
     `Unhandled return statement with type (${expression.getKindName()}), in ${node
       .getSourceFile()
       .getFilePath()}\n\t\tplease report this to the developer\n\t------\n\t\t${node.getText()}\n\t\t------\n`
@@ -721,7 +696,7 @@ function processThrowDetails(node: Node, method: EndpointDefinition) {
       method.errors[throwDetails.status] = [];
     }
     method.errors[throwDetails.status].push({
-      message: throwDetails.message
+      message: throwDetails.message,
     });
   }
 }
@@ -808,13 +783,15 @@ function processFailExpression(
 }
 
 function processReturnExpression(
-  expression: CallExpression,
+  expression: CallLikeExpression | NewExpression,
   status: number,
-  resultsDeclaration: TypeReferenceNode | undefined
+  resultsDeclaration: TypeReferenceNode | undefined,
+  spinner: Ora
 ) {
-  log.success(
-    3,
-    `Detected return statement with expression:\n		---\n		${expression?.getText()}\n		---\n`
+  spinner.info(
+    `Detected return statement with expression:\n		---\n		${node_text_snippet(
+      expression
+    )}\n		---\n`
   );
   const args = expression.getArguments();
   // get the second argument, which is the Response init object, then get the status property
@@ -828,7 +805,7 @@ function processReturnExpression(
         `Args: ${arg
           .getChildren()
           .map((arg) => arg.getText())
-          .join(', ')}`
+          .join(", ")}`
       );
       const statusProp = arg
         .asKind(SyntaxKind.ObjectLiteralExpression)
@@ -836,7 +813,7 @@ function processReturnExpression(
         .find(
           (child) =>
             child.getKind() === SyntaxKind.PropertyAssignment &&
-            child.getText().includes('status')
+            child.getText().includes("status")
         );
 
       if (statusProp) {
@@ -871,71 +848,72 @@ function processReturnExpression(
             // set as unknown type
             return {
               status,
-              resultsDeclaration: undefined
+              resultsDeclaration: undefined,
             };
           }
-          log.success(
-            4,
-            'Found (results = ) declaration:',
-            resultsDeclaration.getText().slice(0, 20)
+          spinner.info(
+            `Found (results = ) declaration: ${node_text_snippet(arg)}`
           );
         }
       }
     } else if (arg?.getKind() === SyntaxKind.ObjectLiteralExpression) {
-      log.success(4, 'Found Object results declaration:', arg.getText());
+      spinner.info(
+        `Found Object results declaration:', ${node_text_snippet(arg)}`
+      );
       resultsDeclaration = arg as TypeReferenceNode;
     } else {
       if (arg?.getFirstDescendantByKind(SyntaxKind.MethodDeclaration)) {
-        log.error(
-          3,
-          `Found method declaration, These are unsupported at the moment, but you can report it in github, ${arg.getText()}`
+        spinner.warn(
+          `Found method declaration, These are unsupported at the moment, but you can report it in github, ${node_text_snippet(
+            arg
+          )}`
         );
         return {
           status,
-          resultsDeclaration: undefined
+          resultsDeclaration: undefined,
         };
       }
       resultsDeclaration = arg as TypeReferenceNode;
-      log.warn(
-        4,
-        `Unhandled return statement, please report this to the developer, ${arg?.getText()}, of type ${arg?.getKindName()}`
+      spinner.fail(
+        `Unhandled return statement, please report this to the developer, ${node_text_snippet(
+          arg
+        )}, of type ${arg?.getKindName()}`
       );
     }
   }
   return { status, resultsDeclaration };
 }
 
-function processTypeDeclaration(declaration: TypeAliasDeclaration) {
+function processTypeDeclaration(
+  declaration: TypeAliasDeclaration,
+  spinner: Ora
+) {
   const file = declaration.getSourceFile();
   // Add the original logic for handling TypeAliasDeclaration here
   // based on your previous code.
   const filePath = declaration.getSourceFile().getFilePath();
   const apiPath = filePath
-    .slice(filePath.indexOf('api/') + 4, filePath.lastIndexOf('/'))
-    .replace(/\[\w+\]/g, ':$&')
-    .replace(/\[|\]/g, '');
-
-  if (!endpoints[apiPath]) {
-    endpoints[apiPath] = {};
-  }
+    .slice(filePath.indexOf("api/") + 4, filePath.lastIndexOf("/"))
+    .replace(/\[\w+\]/g, ":$&")
+    .replace(/\[|\]/g, "");
 
   const typeNode = declaration.getTypeNodeOrThrow();
 
-  const methodType = declaration.getName().replace('_', '').toUpperCase();
+  const methodType = declaration.getName().replace("_", "").toUpperCase();
 
   if (
-    methodType !== 'GET' &&
-    methodType !== 'POST' &&
-    methodType !== 'PUT' &&
-    methodType !== 'PATCH' &&
-    methodType !== 'DELETE'
+    methodType !== "GET" &&
+    methodType !== "POST" &&
+    methodType !== "PUT" &&
+    methodType !== "PATCH" &&
+    methodType !== "DELETE"
   ) {
     return;
   }
 
   init_endpoint({
     path: apiPath,
-    method: 'GET'
+    method: "GET",
   });
 
   if (!endpoints[apiPath][methodType]) {
@@ -947,29 +925,29 @@ function processTypeDeclaration(declaration: TypeAliasDeclaration) {
   let pathParam = processTypeNode(typeArguments[0]);
   let queryOrBodyParam = processTypeNode(typeArguments[1]);
 
-  if (methodType === 'GET' || methodType === 'DELETE') {
-    endpoints[apiPath][methodType]['parameters'] = {
+  if (methodType === "GET" || methodType === "DELETE") {
+    endpoints[apiPath][methodType]["parameters"] = {
       path: pathParam,
-      query: queryOrBodyParam
+      query: queryOrBodyParam,
     };
   } else {
     // for 'PUT', 'POST', and 'PATCH', always assign `query` to `undefined`
-    endpoints[apiPath][methodType]['parameters'] = {
+    endpoints[apiPath][methodType]["parameters"] = {
       path: pathParam,
       body: queryOrBodyParam,
-      query: undefined
+      query: undefined,
     };
   }
 
-  if (!endpoints[apiPath][methodType]['responses']) {
-    endpoints[apiPath][methodType]['responses'] = {};
+  if (!endpoints[apiPath][methodType]["responses"]) {
+    endpoints[apiPath][methodType]["responses"] = {};
   }
 
   const processedTypeNode = processTypeNode(
     typeArguments[typeArguments.length - 1]
   );
 
-  endpoints[apiPath][methodType]['responses'][200] = processedTypeNode;
+  endpoints[apiPath][methodType]["responses"][200] = processedTypeNode;
 
   // collect all imported types
   file
@@ -982,15 +960,18 @@ function processTypeDeclaration(declaration: TypeAliasDeclaration) {
     });
 }
 
-function processActionsDeclaration(declaration: TypeAliasDeclaration) {
+function processActionsDeclaration(
+  declaration: TypeAliasDeclaration,
+  spinner: Ora
+) {
   const file = declaration.getSourceFile();
   // Add the original logic for handling TypeAliasDeclaration here
   // based on your previous code.
   const filePath = declaration.getSourceFile().getFilePath();
   const apiPath = filePath
-    .slice(filePath.indexOf('api/') + 4, filePath.lastIndexOf('/'))
-    .replace(/\[\w+\]/g, ':$&')
-    .replace(/\[|\]/g, '');
+    .slice(filePath.indexOf("api/") + 4, filePath.lastIndexOf("/"))
+    .replace(/\[\w+\]/g, ":$&")
+    .replace(/\[|\]/g, "");
 
   if (!actions[apiPath]) {
     actions[apiPath] = {};
@@ -998,7 +979,7 @@ function processActionsDeclaration(declaration: TypeAliasDeclaration) {
 
   const typeNode = declaration.getTypeNodeOrThrow();
 
-  const methodType = 'ACTION';
+  const methodType = "ACTION";
 
   if (!actions[apiPath][methodType]) {
     actions[apiPath][methodType] = {};
@@ -1027,7 +1008,7 @@ function processActionsDeclaration(declaration: TypeAliasDeclaration) {
           const name = child
             .getFirstDescendantByKind(SyntaxKind.Identifier)
             ?.getText();
-          if (name === 'payload') {
+          if (name === "payload") {
             log.success(3, `Detected payload declaration`);
             return true;
           }
@@ -1053,13 +1034,13 @@ function processActionsDeclaration(declaration: TypeAliasDeclaration) {
           parameters: {
             path: {},
             query: {},
-            body: {}
+            body: {},
           },
           responses: {},
-          errors: {}
+          errors: {},
         };
       }
-      actions[apiPath][methodType][actionName]['parameters']['body'] =
+      actions[apiPath][methodType][actionName]["parameters"]["body"] =
         payloadType;
 
       let status = 200;
@@ -1074,12 +1055,12 @@ function processActionsDeclaration(declaration: TypeAliasDeclaration) {
           const expression = subnode.getExpression();
 
           if (!expression) {
-            log.error(3, 'Detected return statement without expression');
+            log.error(3, "Detected return statement without expression");
             return;
           }
 
-          if (subnode.getText().includes('fail')) {
-            log.error(3, 'Detected return statement with fail');
+          if (subnode.getText().includes("fail")) {
+            log.error(3, "Detected return statement with fail");
             ({ status, resultsDeclaration } = processFailExpression(
               expression,
               status,
@@ -1087,14 +1068,14 @@ function processActionsDeclaration(declaration: TypeAliasDeclaration) {
             ));
             if (resultsDeclaration) {
               const processedResponse = processTypeNode(resultsDeclaration);
-              if (!actions[apiPath][methodType][actionName]['errors']) {
-                actions[apiPath][methodType][actionName]['errors'] = {};
+              if (!actions[apiPath][methodType][actionName]["errors"]) {
+                actions[apiPath][methodType][actionName]["errors"] = {};
               }
-              if (!actions[apiPath][methodType][actionName]['errors'][status]) {
-                actions[apiPath][methodType][actionName]['errors'][status] = [];
+              if (!actions[apiPath][methodType][actionName]["errors"][status]) {
+                actions[apiPath][methodType][actionName]["errors"][status] = [];
               }
-              actions[apiPath][methodType][actionName]['errors'][status].push({
-                message: processedResponse
+              actions[apiPath][methodType][actionName]["errors"][status].push({
+                message: processedResponse,
               });
               addedResponses.add(JSON.stringify(processedResponse));
             }
@@ -1109,7 +1090,8 @@ function processActionsDeclaration(declaration: TypeAliasDeclaration) {
             ({ status, resultsDeclaration } = processReturnExpression(
               expression,
               status,
-              resultsDeclaration
+              resultsDeclaration,
+              spinner
             ));
           } else if (expression && Node.isIdentifier(expression)) {
             resultsDeclaration = processReturnIdentifier(
@@ -1128,7 +1110,7 @@ function processActionsDeclaration(declaration: TypeAliasDeclaration) {
           }
         } else if (
           Node.isVariableDeclaration(subnode) &&
-          subnode.getName() === 'results'
+          subnode.getName() === "results"
         ) {
           resultsDeclaration = processReturnVariable(
             resultsDeclaration,
@@ -1136,14 +1118,14 @@ function processActionsDeclaration(declaration: TypeAliasDeclaration) {
           );
         }
 
-        if (!actions[apiPath][methodType][actionName]['responses'][status]) {
-          actions[apiPath][methodType][actionName]['responses'][status] = [];
+        if (!actions[apiPath][methodType][actionName]["responses"][status]) {
+          actions[apiPath][methodType][actionName]["responses"][status] = [];
         }
 
         if (resultsDeclaration) {
           const processedResponse = processTypeNode(resultsDeclaration);
           if (!addedResponses.has(JSON.stringify(processedResponse))) {
-            actions[apiPath][methodType][actionName]['responses'][status].push(
+            actions[apiPath][methodType][actionName]["responses"][status].push(
               processedResponse
             );
             addedResponses.add(JSON.stringify(processedResponse));
@@ -1154,78 +1136,151 @@ function processActionsDeclaration(declaration: TypeAliasDeclaration) {
   });
 }
 
-function processFiles() {
-  const processedFiles = new Set<string>();
-
-  for (const file of project.getSourceFiles()) {
-    const filePath = file.getFilePath();
-    if (processedFiles.has(filePath)) continue;
-
-    processedFiles.add(filePath);
-    telemetryPayload.data.processed_files_count += 1;
-
-    log.header(1, `⌘  Processing: ${filePath.replace(workingDir, '')}`);
-
-    for (const declarationsArray of file.getExportedDeclarations().values()) {
-      for (const declaration of declarationsArray) {
-        if (isValidDeclaration(declaration)) {
-          processDeclaration(file, declaration);
-        }
-      }
-    }
-  }
+function absolute_to_relative(path: string) {
+  return path.replace(workingDir, "");
 }
 
-function isValidDeclaration(declaration: ExportedDeclarations): boolean {
-  const validNames = [
-    'GET',
-    'POST',
-    'PUT',
-    'PATCH',
-    'DELETE',
-    '_Get',
-    '_Post',
-    '_Put',
-    '_Patch',
-    '_Delete',
-    'actions'
-  ];
-  return (
-    (declaration instanceof FunctionDeclaration ||
-      declaration instanceof VariableDeclaration ||
-      declaration instanceof TypeAliasDeclaration) &&
-    validNames.includes(declaration.getName()!)
+function ms_to_human_readable(ms: number) {
+  const seconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+
+  if (hours > 0) {
+    return `${hours}h ${minutes % 60}m ${seconds % 60}s`;
+  }
+  if (minutes > 0) {
+    return `${minutes}m ${seconds % 60}s`;
+  }
+  return `${seconds}s`;
+}
+
+async function processFiles() {
+  const start = performance.now();
+  const spinner = ora("Finding files...").start();
+  const all_files = project.getSourceFiles();
+  spinner.succeed(
+    `Found ${all_files.length} files in ${ms_to_human_readable(
+      performance.now() - start
+    )}`
+  );
+
+  spinner.info(`Generating API types for ${input} in ${outputPath}`);
+
+  // const progressBar = new SingleBar({}, Presets.shades_classic);
+  // progressBar.start(all_files.length, 0);
+
+  const processedFiles = new Set<string>();
+
+  await Promise.all(
+    all_files.map(async (file) => {
+      const filePath = file.getFilePath();
+      if (processedFiles.has(filePath)) return;
+      processedFiles.add(filePath);
+
+      const validDeclarations = Array.from(
+        file.getExportedDeclarations().values()
+      )
+        .flat()
+        .map(isValidDeclaration)
+        .filter((v) => !!v);
+
+      for (const declaration of validDeclarations) {
+        await processDeclaration(file, declaration);
+      }
+
+      // progressBar.increment();
+    })
+  );
+
+  // progressBar.stop();
+  const end = performance.now();
+  spinner.succeed(
+    `Processed ${all_files.length} files in ${ms_to_human_readable(
+      end - start
+    )}`
   );
 }
 
-function processDeclaration(
-  file: SourceFile,
-  declaration: ExportedDeclarations
-) {
-  const declarationName = declaration.getName()!;
+function isValidDeclaration(declaration: ExportedDeclarations) {
+  const validNames = new Set([
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "_Get",
+    "_Post",
+    "_Put",
+    "_Patch",
+    "_Delete",
+    "actions",
+  ]);
 
-  if (['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(declarationName)) {
+  let name: string | undefined;
+
+  if (Node.isFunctionDeclaration(declaration)) {
+    name = declaration.getName();
+    if (name && validNames.has(name)) {
+      return declaration;
+    }
+  } else if (Node.isVariableDeclaration(declaration)) {
+    name = declaration.getName();
+    if (name && validNames.has(name)) {
+      return declaration;
+    }
+  } else if (Node.isTypeAliasDeclaration(declaration)) {
+    name = declaration.getName();
+    if (name && validNames.has(name)) {
+      return declaration;
+    }
+  }
+  return;
+}
+
+async function processDeclaration(
+  file: SourceFile,
+  declaration: FunctionDeclaration | VariableDeclaration | TypeAliasDeclaration
+) {
+  const declarationName = declaration.getName() as string;
+  const declaration_spinner = ora({
+    text: `${declarationName}`,
+    color: "yellow",
+    indent: 3,
+  })
+    .start()
+    .info(
+      `${ansiColors.bgGreen(declarationName)} | ${absolute_to_relative(
+        file.getFilePath()
+      )}`
+    );
+
+  if (["GET", "POST", "PUT", "PATCH", "DELETE"].includes(declarationName)) {
     processFunctionDeclaration(
-      declaration as FunctionDeclaration | VariableDeclaration
+      declaration as FunctionDeclaration | VariableDeclaration,
+      declaration_spinner
     );
   } else if (
-    ['_Get', '_Post', '_Put', '_Patch', '_Delete'].includes(declarationName)
+    ["_Get", "_Post", "_Put", "_Patch", "_Delete"].includes(declarationName)
   ) {
-    processTypeDeclaration(declaration as TypeAliasDeclaration);
-  } else if (declarationName === 'actions') {
-    processActionsDeclaration(declaration as TypeAliasDeclaration);
+    processTypeDeclaration(
+      declaration as TypeAliasDeclaration,
+      declaration_spinner
+    );
+  } else if (declarationName === "actions") {
+    processActionsDeclaration(
+      declaration as TypeAliasDeclaration,
+      declaration_spinner
+    );
   }
 }
 
-let output = '';
-let actionOutput = '';
-
-const generateApiTypes = (endpoints: Endpoints): string => {
+async function generateApiTypes() {
+  const spinner = ora("Processing API types...").start();
   const imports = new Set<string>();
-  let output = 'export interface APIPaths {\n';
+  let output = "export interface APIPaths {\n";
 
   for (const [apiPath, methodMap] of endpoints) {
-    const formattedPath = apiPath.replace(/^\//, '').replace(/\//g, '.');
+    const formattedPath = apiPath.replace(/^\//, "").replace(/\//g, ".");
 
     output += `  '${formattedPath}': {\n`;
 
@@ -1241,6 +1296,12 @@ const generateApiTypes = (endpoints: Endpoints): string => {
 
       if (endpointDef.parameters?.body?.imports) {
         for (const imp of endpointDef.parameters.body.imports) {
+          imports.add(imp);
+        }
+      }
+
+      if (endpointDef.imports) {
+        for (const imp of endpointDef.imports) {
           imports.add(imp);
         }
       }
@@ -1262,256 +1323,169 @@ const generateApiTypes = (endpoints: Endpoints): string => {
         output += `      responses: ${
           endpointDef.responses
             ? generateResponsesType(endpointDef.responses)
-            : 'never'
+            : "never"
         };\n`;
       }
 
       if (endpointDef.errors && Object.keys(endpointDef.errors).length > 0) {
         output += `      errors: ${generateErrorsType(endpointDef.errors)};\n`;
       } else {
-        output += '      errors?: never;\n';
+        output += "      errors?: never;\n";
       }
 
-      output += '    };\n';
+      output += "    };\n";
     }
 
-    output += '  };\n';
+    output += "  };\n";
   }
 
-  output += '}\n';
+  output += "}\n";
 
-  const importsString = Array.from(imports).join('\n');
+  const importsString = Array.from(imports).join("\n");
 
+  spinner.succeed("Processed API types");
   return `${importsString}\n\n${output}`;
-};
+}
+
+function objectToUnquotedString(obj: unknown): string {
+  if (typeof obj !== "object" || obj === null) {
+    return String(obj);
+  }
+
+  // handle arrays
+  if (Array.isArray(obj)) {
+    return `[${obj.map(formatObject).join(", ")}]`;
+  }
+
+  const pairs = Object.entries(obj).map(([key, value]) => {
+    return `${key}:${objectToUnquotedString(value)}`;
+  });
+
+  return "{" + pairs.join(",") + "}";
+}
 
 const generateParametersType = (
-  parameters?: EndpointDefinition['parameters']
+  parameters?: EndpointDefinition["parameters"]
 ): string => {
-  if (!parameters) return 'undefined';
+  if (!parameters) return "undefined";
 
-  let output = '{\n';
+  let output = "{\n";
 
   if (parameters.body) {
-    output += `        body: ${parameters.body.typeString};\n`;
+    output += `        body: ${parameters.body.typeString?.replaceAll(
+      `${workingDir}/`,
+      ""
+    )};\n`;
   }
   if (parameters.path) {
-    output += `        path: ${JSON.stringify(parameters.path)};\n`;
+    output += `        path: ${
+      parameters.path ? objectToUnquotedString(parameters.path) : "undefined"
+    };\n`;
   }
   if (parameters.query) {
-    output += `        query: ${JSON.stringify(parameters.query)};\n`;
+    output += `        query: ${
+      parameters.query ? objectToUnquotedString(parameters.query) : "undefined"
+    };\n`;
   }
 
-  output += '      }';
+  output += "      }";
   return output;
 };
 
 const generateResponsesType = (
   responses?: Record<number, FormattedType[]>
 ): string => {
-  if (!responses) return 'undefined';
+  if (!responses) return "undefined";
   const responseTypes: string[] = [];
   for (const [status, responseArray] of Object.entries(responses)) {
     const types = responseArray
       .map((response) => response.typeString)
-      .join(' | ');
+      .join(" | ");
     responseTypes.push(`    ${status}: ${types}`);
   }
-  return `{\n${responseTypes.join(';\n')}\n  }`;
+  return `{\n${responseTypes.join(";\n")}\n  }`;
 };
 
 const generateErrorsType = (errors: Record<string, any[]>): string => {
-  return JSON.stringify(errors);
+  return objectToUnquotedString(errors);
 };
-
-function formatComplexType(type: Type): FormattedType {
-  const typeText = type.getText();
-
-  // TODO: HANDLE NAMESPACES
-  if (typeof type === 'string') {
-    if (type.startsWith('import(')) {
-      const match = type.match(/import\("(.+)"\)\.(.+)/);
-      if (match) {
-        const [, importPath, importedType] = match;
-        if (importedType) {
-          return {
-            typeString: importedType,
-            imports: new Set([
-              `import type { ${
-                importedType.split('.')[0]
-              } } from "${importPath}";`
-            ])
-          };
-        }
-      }
-    }
-    return { typeString: type, imports: new Set() };
-  }
-
-  if (Array.isArray(type)) {
-    const results = type.map(formatComplexType);
-    const imports = new Set(results.flatMap((r) => Array.from(r.imports)));
-    const typeString = `[${results.map((r) => r.typeString).join(', ')}]`;
-    return { typeString, imports };
-  }
-
-  if (typeof type === 'object' && type !== null) {
-    const entries = Object.entries(type).map(([k, v]) => {
-      const formatted = formatComplexType(v);
-      return [k, formatted] as [string, FormattedType];
-    });
-
-    const imports = new Set(entries.flatMap(([, v]) => Array.from(v.imports)));
-    const typeString = `{\n${entries
-      .map(([k, v]) => `    ${k}: ${v.typeString};`)
-      .join('\n')}\n  }`;
-    return { typeString, imports };
-  }
-
-  return { typeString: String(type), imports: new Set() };
-}
 
 function formatObject(obj: any): string {
   if (obj === undefined) {
-    return 'undefined';
+    return "undefined";
   }
   if (Array.isArray(obj)) {
-    return `[${obj.map(formatObject).join(', ')}]`;
+    return `[${obj.map(formatObject).join(", ")}]`;
   }
-  if (typeof obj === 'string') {
+  if (typeof obj === "string") {
     if (/^\{\s*\}$/.test(obj)) {
-      return 'never';
+      return "never";
     }
     return `${obj}`;
   }
   if (obj == null || JSON.stringify(obj) === JSON.stringify({})) {
-    return 'never';
+    return "never";
   }
 
-  let objStr = '{\n';
+  let objStr = "{\n";
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       let value = formatObject(obj[key]);
       objStr += `          ${key}: ${value},\n`;
     }
   }
-  objStr += '        }';
+  objStr += "        }";
   return objStr;
 }
 
-function generateActionsOutput() {
+async function generateActionsOutput(): Promise<string> {
+  let actionOutput = "";
+
   for (const apiPath in actions) {
     actionOutput += `  '${apiPath}': {\n`;
     for (const method in actions[apiPath]) {
-      // const docs = actions[apiPath][method]["docs"];
-      // if (docs.length > 0) {
-      //   console.log("docs", docs);
-      //   actionOutput += `   ${docs}`;
-      // }
-
       actionOutput += `    ${method}: {\n`;
 
       for (const action in actions[apiPath][method]) {
-        actionOutput += `      parameters: {\n`;
+        actionOutput += "      parameters: {\n";
 
-        const parameters = actions[apiPath][method][action]['parameters'];
+        const parameters = actions[apiPath][method][action].parameters;
         for (const paramType in parameters) {
-          let paramValue = formatObject(parameters[paramType]);
-          let optional = paramValue === 'never' ? '?' : '';
+          const paramValue = await formatObject(parameters[paramType]);
+          const optional = paramValue === "never" ? "?" : "";
           actionOutput += `        ${paramType}${optional}: ${paramValue},\n`;
         }
-        actionOutput += `      },\n`;
-        actionOutput += `      responses: {\n`;
+        actionOutput += "      },\n";
+        actionOutput += "      responses: {\n";
 
-        for (const statusCode in actions[apiPath][method][action][
-          'responses'
-        ]) {
-          let response =
-            actions[apiPath][method][action]['responses'][statusCode];
-          const formattedResponse = formatObject(response);
-          if (formattedResponse.trim() === '') {
+        for (const statusCode in actions[apiPath][method][action].responses) {
+          const response =
+            actions[apiPath][method][action].responses[statusCode];
+          const formattedResponse = await formatObject(response);
+          if (formattedResponse.trim() === "") {
             continue;
           }
-          actionOutput += `        ${statusCode}: ${formatObject(response)},\n`;
+          actionOutput += `        ${statusCode}: ${formattedResponse},\n`;
         }
 
-        actionOutput += `      }\n`;
-        actionOutput += `      errors: {\n`;
+        actionOutput += "      },\n";
+        actionOutput += "      errors: {\n";
 
-        for (const statusCode in actions[apiPath][method][action]['errors']) {
-          let response = actions[apiPath][method][action]['errors'][statusCode];
-          actionOutput += `        ${statusCode}: ${formatObject(response)},\n`;
+        for (const statusCode in actions[apiPath][method][action].errors) {
+          const response = actions[apiPath][method][action].errors[statusCode];
+          actionOutput += `        ${statusCode}: ${await formatObject(
+            response
+          )},\n`;
         }
 
-        actionOutput += `      }\n`;
-        actionOutput += `    },\n`;
+        actionOutput += "      },\n";
+        actionOutput += "    },\n";
       }
     }
-    actionOutput += '  },\n';
+    actionOutput += "  },\n";
   }
 
-  actionOutput = 'export interface ActionPaths {\n' + actionOutput + '};\n';
-}
-
-function generateInterfaces() {
-  const interfaces = fs
-    .readFileSync(path.resolve(__dirname, './assets/interfaces.ts'))
-    .toString();
-  output = interfaces + '\n' + output;
-
-  // add the import statements at the top
-  let importsOutput = '';
-  for (const [importName, moduleName] of Object.entries(importMap)) {
-    if (
-      moduleName !== './$types' &&
-      !['Post', 'Get', 'Put', 'Patch', 'Delete'].includes(importName)
-    ) {
-      importsOutput += `import { ${importName} } from "${moduleName}";\n`;
-    }
-  }
-
-  const final_output = importsOutput + output + actionOutput;
-
-  // count how many lines are in the output
-  telemetryPayload.data.generated_lines_of_code +=
-    final_output.split('\n').length;
-
-  fs.writeFileSync(path.join(outputPath, 'api.ts'), final_output);
-
-  log.success(
-    2,
-    `generated Svetch API types in ${path.join(outputPath, 'api.ts')}`
-  );
-}
-
-function generateClient() {
-  const interfaces = fs
-    .readFileSync(path.resolve(__dirname, './assets/client.ts'))
-    .toString();
-  output = interfaces + '\n' + output;
-
-  // add the import statements at the top
-  let importsOutput = '';
-  for (const [importName, moduleName] of Object.entries(importMap)) {
-    if (
-      moduleName !== './$types' &&
-      !['Post', 'Get', 'Put', 'Patch', 'Delete'].includes(importName)
-    ) {
-      importsOutput += `import { ${importName} } from "${moduleName}";\n`;
-    }
-  }
-
-  const final_output = importsOutput + output;
-
-  telemetryPayload.data.generated_lines_of_code +=
-    final_output.split('\n').length;
-
-  fs.writeFileSync(path.join(outputPath, 'client.ts'), final_output);
-
-  log.success(
-    2,
-    `Genererated Svetch Client in ${path.join(outputPath, 'client.ts')}`
-  );
+  return "export interface ActionPaths {\n" + actionOutput + "};\n";
 }
 
 let jsonSchema: TJS.Definition | null = null;
@@ -1522,9 +1496,9 @@ async function sendTelemetry() {
   }
 
   // read previous telemetry if it exists
-  if (fs.existsSync(path.join(__dirname, 'telemetry.json'))) {
+  if (fs.existsSync(path.join(__dirname, "telemetry.json"))) {
     const previousTelemetry = JSON.parse(
-      fs.readFileSync(path.join(__dirname, 'telemetry.json')).toString()
+      fs.readFileSync(path.join(__dirname, "telemetry.json")).toString()
     );
 
     // if the previous telemetry was sent less than 24 hours ago, don't send it again
@@ -1543,19 +1517,19 @@ async function sendTelemetry() {
 
   // write telemetry locally
   fs.writeFileSync(
-    path.join(__dirname, 'telemetry.json'),
+    path.join(__dirname, "telemetry.json"),
     JSON.stringify(telemetryPayload)
   );
 
   // send telemetry to svetch server
-  const url = 'https://svetch-dev.vercel.app/telemetry';
+  const url = "https://svetch-dev.vercel.app/telemetry";
 
   const response = await fetch(url, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(telemetryPayload)
+    body: JSON.stringify(telemetryPayload),
   });
 
   if (response.status === 200) {
@@ -1566,11 +1540,13 @@ async function sendTelemetry() {
   }
 }
 
-function generateSchema() {
+async function generateSchema() {
+  const start = performance.now();
+  const spinner = ora("Generating API JSON schema...").start();
   // optionally pass argument to schema generator
   const settings: TJS.PartialArgs = {
     // required: true,
-    ignoreErrors: true
+    ignoreErrors: true,
     // topRef: true,
   };
 
@@ -1587,83 +1563,69 @@ function generateSchema() {
     // compilerOptions,
     // basePath
   );
-
   // We can either get the schema for one file and one type...
-  const schema = TJS.generateSchema(program, 'APIPaths', settings);
+  const schema = TJS.generateSchema(program, "APIPaths", settings);
 
   jsonSchema = schema;
 
+  spinner.text = "Writing JSON Schema";
   // ensure schema path is there
   if (!fs.existsSync(schemaOutputPath)) {
     fs.mkdirSync(schemaOutputPath);
   }
 
-  fs.writeFileSync(
-    path.join(outputPath, 'schema.json'),
-    JSON.stringify(schema, null, 2)
+  await Promise.all([
+    fs.promises.writeFile(
+      path.join(outputPath, "schema.json"),
+      JSON.stringify(schema, null, 2)
+    ),
+
+    fs.promises.writeFile(
+      path.join(schemaOutputPath, "apiSchema.json"),
+      JSON.stringify(schema)
+    ),
+  ]);
+
+  spinner.succeed(
+    `Generated API JSON schema successfully, ${ms_to_human_readable(
+      performance.now() - start
+    )}`
   );
-
-  fs.writeFileSync(
-    path.join(schemaOutputPath, 'apiSchema.json'),
-    JSON.stringify(schema)
-  );
-
-  telemetryPayload.data.generated_lines_of_code +=
-    JSON.stringify(schema).split('\n').length;
 }
 
-async function generateZodSchema() {
-  const schema = parseSchema(jsonSchema as any);
+// async function generateZodSchema() {
+//   const schema = parseSchema(jsonSchema as any);
 
-  const output = `import { z } from 'zod';\n\nexport const schema = ${schema};`;
+//   const output = `import { z } from 'zod';\n\nexport const schema = ${schema};`;
 
-  telemetryPayload.data.generated_lines_of_code += output.split('\n').length;
+//   telemetryPayload.data.generated_lines_of_code += output.split('\n').length;
 
-  //   write
-  fs.writeFileSync(path.join(outputPath, 'zod.ts'), output);
-  log.success(2, `Generated zod schema in ${path.join(outputPath, 'zod.ts')}`);
-}
-
-function generateSvetchClient() {
-  let client = fs
-    .readFileSync(path.resolve(__dirname, './assets/client.ts'))
-    .toString();
-
-  // if the schema was generated, add it to the client
-  if (fs.existsSync(path.join(outputPath, 'zod.ts'))) {
-    client = `import { schema } from './zod'` + '\n' + client;
-  }
-
-  if (fs.existsSync(path.join(outputPath, 'schema.json'))) {
-    client = `import type { APIPaths } from './api'` + '\n' + client;
-  }
-
-  // write
-  fs.writeFileSync(path.join(outputPath, 'client.ts'), client);
-  log.success(2, `Generated client in ${path.join(outputPath, 'client.ts')}`);
-}
+//   //   write
+//   fs.writeFileSync(path.join(outputPath, 'zod.ts'), output);
+//   log.success(2, `Generated zod schema in ${path.join(outputPath, 'zod.ts')}`);
+// }
 
 function generateSvetchDocs() {
   const docs = fs
-    .readFileSync(path.resolve(__dirname, './assets/docs/+page.svelte'))
+    .readFileSync(path.resolve(__dirname, "./assets/docs/+page.svelte"))
     .toString()
     .replace(
-      '[CLIENT_PATH]',
-      path.join(workingDir, out, 'client').replace(workingDir, '').slice(1)
+      "[CLIENT_PATH]",
+      path.join(workingDir, out, "client").replace(workingDir, "").slice(1)
     );
   // get all components inside the assets/docs/components folder
   const body_block = fs
     .readFileSync(
-      path.resolve(__dirname, './assets/docs/components/BodyBlock.svelte')
+      path.resolve(__dirname, "./assets/docs/components/BodyBlock.svelte")
     )
     .toString()
     .replace(
-      '[INTERFACE_PATH]',
-      path.join(workingDir, out, 'api').replace(workingDir, '').slice(1)
+      "[INTERFACE_PATH]",
+      path.join(workingDir, out, "api").replace(workingDir, "").slice(1)
     );
   const Collapsible = fs
     .readFileSync(
-      path.resolve(__dirname, './assets/docs/components/Collapsible.svelte')
+      path.resolve(__dirname, "./assets/docs/components/Collapsible.svelte")
     )
     .toString();
 
@@ -1672,24 +1634,121 @@ function generateSvetchDocs() {
   if (!fs.existsSync(docsOutputPath)) {
     fs.mkdirSync(docsOutputPath, { recursive: true });
   }
-  if (!fs.existsSync(path.join(docsOutputPath, 'components'))) {
-    fs.mkdirSync(path.join(docsOutputPath, 'components'), { recursive: true });
+  if (!fs.existsSync(path.join(docsOutputPath, "components"))) {
+    fs.mkdirSync(path.join(docsOutputPath, "components"), { recursive: true });
   }
 
   // write
-  fs.writeFileSync(path.join(docsOutputPath, '+page.svelte'), docs);
+  fs.writeFileSync(path.join(docsOutputPath, "+page.svelte"), docs);
   fs.writeFileSync(
-    path.join(docsOutputPath, 'components/BodyBlock.svelte'),
+    path.join(docsOutputPath, "components/BodyBlock.svelte"),
     body_block
   );
   fs.writeFileSync(
-    path.join(docsOutputPath, 'components/Collapsible.svelte'),
+    path.join(docsOutputPath, "components/Collapsible.svelte"),
     Collapsible
   );
-  log.success(2, `Generated docs in ${docsOutputPath}`);
 }
 
-export function main(args: ScriptArgs) {
+function generateImports(importMap: Record<string, string>): string {
+  return Object.entries(importMap)
+    .filter(
+      ([importName, moduleName]) =>
+        moduleName !== "./$types" &&
+        !["Post", "Get", "Put", "Patch", "Delete"].includes(importName)
+    )
+    .map(
+      ([importName, moduleName]) =>
+        `import { ${importName} } from "${moduleName}";`
+    )
+    .join("\n");
+}
+
+function generateApiOutput(
+  importsOutput: string,
+  interfaces: string,
+  output: string,
+  actionsOutput: string
+): string {
+  return `${importsOutput}\n${interfaces}\n${output}\n${actionsOutput}`;
+}
+
+function generateClientOutput(client: string): string {
+  let output = client;
+  if (fs.existsSync(path.join(outputPath, "zod.ts"))) {
+    output = `import { schema } from './zod'\n${client}`;
+  }
+
+  if (fs.existsSync(path.join(outputPath, "schema.json"))) {
+    output = `import type { APIPaths } from './api'\n${client}`;
+  }
+
+  return output;
+}
+
+async function generateAll() {
+  const spinner = ora("Generating API components...").start();
+  const start = performance.now();
+
+  const [apiTypes, actionsOutput, interfaces, client] = await Promise.all([
+    generateApiTypes(),
+    generateActionsOutput(),
+    fs.promises.readFile(
+      path.resolve(__dirname, "./assets/interfaces.ts"),
+      "utf-8"
+    ),
+    fs.promises.readFile(
+      path.resolve(__dirname, "./assets/client.ts"),
+      "utf-8"
+    ),
+  ]);
+
+  try {
+    const importsOutput = generateImports(importMap);
+
+    spinner.info(
+      `Generating API Types..., ${ms_to_human_readable(
+        performance.now() - start
+      )}`
+    );
+    const apiOutput = generateApiOutput(
+      importsOutput,
+      interfaces,
+      apiTypes,
+      actionsOutput
+    );
+
+    spinner.info(
+      "Generating Client..., " + ms_to_human_readable(performance.now() - start)
+    );
+    const clientOutput = generateClientOutput(client);
+    spinner.info(
+      `Writing files..., ${ms_to_human_readable(performance.now() - start)}`
+    );
+
+    await Promise.all([
+      fs.promises.writeFile(path.join(outputPath, "api.ts"), apiOutput, {
+        encoding: "utf-8",
+      }),
+      fs.promises.writeFile(path.join(outputPath, "client.ts"), clientOutput, {
+        encoding: "utf-8",
+      }),
+      generateSchema(),
+      generateSvetchDocs(),
+    ]);
+
+    spinner.succeed(
+      "Generated API components successfully, " +
+        ms_to_human_readable(performance.now() - start)
+    );
+  } catch (error) {
+    spinner.fail(
+      `Error generating schema, please report this to the developer: ${error}`
+    );
+  }
+}
+
+export async function main(args: ScriptArgs) {
   tsconfig = args.tsconfig;
   framework = args.framework;
   input = args.input;
@@ -1700,6 +1759,7 @@ export function main(args: ScriptArgs) {
   staticFolder = args.staticFolder;
   telemetry = args.telemetry;
 
+  const spinner = ora("Scanning for API endpoints...").start();
   project.addSourceFilesAtPaths([`${input}/**/*+server.ts`]);
 
   // Change output path here:
@@ -1710,12 +1770,10 @@ export function main(args: ScriptArgs) {
   // check if input folder exists
 
   if (!fs.existsSync(input)) {
-    log.error(1, `Input folder ${input} does not exist`);
-    log.warn(
-      1,
-      `Please change it in your .svetchrc file here: 👉 [${path.resolve(
+    spinner.fail(
+      `Input folder ${input} does not exist. Please change it in your .svetchrc file here: 👉 [${path.resolve(
         workingDir,
-        '.svetchrc'
+        ".svetchrc"
       )}]\nOr run svetch init again.\n\nExiting...\n\n`
     );
     process.exit(1);
@@ -1723,71 +1781,49 @@ export function main(args: ScriptArgs) {
   if (!fs.existsSync(outputPath)) {
     fs.mkdirSync(outputPath, { recursive: true });
   }
-  log.info(1, `Generating API types in ${outputPath}`);
-  processFiles();
-  log.header(1, `Processed, Writing files...`);
-  output += generateApiTypes(endpoints);
-  generateActionsOutput();
-  generateInterfaces();
-  generateClient();
-  try {
-    generateSchema();
-    generateZodSchema();
-    generateSvetchDocs();
-  } catch (error) {
-    log.error(
-      1,
-      `Error generating schema, please report this to the developer, ${error}`
-    );
-  }
-  generateSvetchClient();
+  // throw new Error('I DONT LIKE CINNABON');
+  await processFiles();
+
+  await generateAll();
 
   try {
     sendTelemetry();
   } catch (error) {}
 
-  log.success(
-    1,
-    `\n${separator}\nDone!, now import Svetch using the following code:\n\n`
-  );
-  log.info(
-    1,
-    `import { Svetch } from ${path
-      .join(workingDir, out, 'client')
-      .replace(workingDir, '')
-      .slice(1)};`
-  );
-  log.info(1, `const svetch = new Svetch();\n\n`);
-
-  // find how many files are in the project, that end in +server.ts
-  const totalFiles = project.getSourceFiles().filter((file) => {
-    return file.getFilePath().includes('+server.ts');
-  }).length;
-
-  // if files more than 10, prompt user to purchase
-  if (totalFiles > 10) {
-    log.info(
-      1,
-      `
-      \x1b[33m⚠ Wow! You have ${totalFiles} endpoints in your project. You're certainly getting the most out of Svetch!\n
-      By now, you must have realized the value Svetch brings to your development process - the time it saves, the consistency it provides, and the boilerplate it cuts out. It's become a crucial part of your toolkit.
-
-      \x1b[37mSvetch is a labor of love, maintained and continually improved to help developers like you create amazing things with less effort. But we need your support to keep it growing and evolving.
-      By purchasing a license, you contribute to the future development and maintenance of Svetch.
-
-      Plus, with a full license, you can use Svetch with no restrictions, no matter how big your projects get! 
-    `
-    );
-    log.header(
-      1,
-      `
-      👉 Support the development and get your license here: [https://petrasolutions.lemonsqueezy.com/checkout/buy/19210e05-ae3c-41a0-920c-324e3083618d]
+  spinner.succeed(
+    `\n${separator}\nDone!, now import Svetch using the following code:\n\n
+    import { Svetch } from ${path
+      .join(workingDir, out, "client")
+      .replace(workingDir, "")
+      .slice(1)};
       
-      Thank you for using Svetch and for your support!
-      `
-    );
-    // the library will still work
-  }
+      const svetch = new Svetch();\n\n`
+  );
+
+  // // if files more than 10, prompt user to purchase
+  // if (totalFiles > 10) {
+  //   log.info(
+  //     1,
+  //     `
+  //     \x1b[33m⚠ Wow! You have ${totalFiles} endpoints in your project. You're certainly getting the most out of Svetch!\n
+  //     By now, you must have realized the value Svetch brings to your development process - the time it saves, the consistency it provides, and the boilerplate it cuts out. It's become a crucial part of your toolkit.
+
+  //     \x1b[37mSvetch is a labor of love, maintained and continually improved to help developers like you create amazing things with less effort. But we need your support to keep it growing and evolving.
+  //     By purchasing a license, you contribute to the future development and maintenance of Svetch.
+
+  //     Plus, with a full license, you can use Svetch with no restrictions, no matter how big your projects get!
+  //   `
+  //   );
+  //   log.header(
+  //     1,
+  //     `
+  //     👉 Support the development and get your license here: [https://petrasolutions.lemonsqueezy.com/checkout/buy/19210e05-ae3c-41a0-920c-324e3083618d]
+
+  //     Thank you for using Svetch and for your support!
+  //     `
+  //   );
+  //   // the library will still work
+  // }
 }
 
 // runAll()

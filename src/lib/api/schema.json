@@ -1,7 +1,7 @@
 {
   "type": "object",
   "properties": {
-    "api.prisma": {
+    "api.prisma.:id": {
       "type": "object",
       "properties": {
         "POST": {
@@ -227,6 +227,7 @@
                                   "$ref": "#/definitions/Prisma.PostWhereUniqueInput"
                                 },
                                 "create": {
+                                  "description": "XOR is needed to have a real mutually exclusive union type\nhttps://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types",
                                   "anyOf": [
                                     {
                                       "allOf": [
@@ -327,6 +328,7 @@
                                     "$ref": "#/definitions/Prisma.PostWhereUniqueInput"
                                   },
                                   "create": {
+                                    "description": "XOR is needed to have a real mutually exclusive union type\nhttps://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types",
                                     "anyOf": [
                                       {
                                         "allOf": [
@@ -511,1480 +513,1496 @@
                         "connect": {
                           "anyOf": [
                             {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
+                              "allOf": [
+                                {
+                                  "$ref": "#/definitions/{id:string;}"
                                 },
-                                "AND": {
-                                  "anyOf": [
-                                    {
-                                      "$ref": "#/definitions/Prisma.PostWhereInput"
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
                                     },
-                                    {
+                                    "AND": {
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "OR": {
                                       "type": "array",
                                       "items": {
                                         "$ref": "#/definitions/Prisma.PostWhereInput"
                                       }
+                                    },
+                                    "NOT": {
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "title": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "equals": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "in": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "notIn": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "lt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "lte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "contains": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "startsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "endsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "mode": {
+                                              "$ref": "#/definitions/Prisma.QueryMode"
+                                            },
+                                            "not": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "content": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "equals": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "in": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "notIn": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "lt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "lte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "contains": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "startsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "endsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "mode": {
+                                              "$ref": "#/definitions/Prisma.QueryMode"
+                                            },
+                                            "not": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "createdAt": {
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "equals": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "in": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "notIn": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "lt": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "lte": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gt": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gte": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "not": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.NestedDateTimeFilter<\"Post\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "updatedAt": {
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "equals": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "in": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "notIn": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "lt": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "lte": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gt": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gte": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "not": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.NestedDateTimeFilter<\"Post\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "authorId": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "equals": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "in": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "notIn": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "lt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "lte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "contains": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "startsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "endsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "mode": {
+                                              "$ref": "#/definitions/Prisma.QueryMode"
+                                            },
+                                            "not": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "author": {
+                                      "description": "XOR is needed to have a real mutually exclusive union type\nhttps://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types",
+                                      "anyOf": [
+                                        {
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/Prisma.Without<Prisma.UserRelationFilter,Prisma.UserWhereInput>"
+                                            },
+                                            {
+                                              "$ref": "#/definitions/Prisma.UserWhereInput",
+                                              "description": "Deep Input Types"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/Prisma.Without<Prisma.UserWhereInput,Prisma.UserRelationFilter>"
+                                            },
+                                            {
+                                              "$ref": "#/definitions/Prisma.UserRelationFilter"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     }
-                                  ]
-                                },
-                                "OR": {
-                                  "type": "array",
-                                  "items": {
-                                    "$ref": "#/definitions/Prisma.PostWhereInput"
                                   }
-                                },
-                                "NOT": {
-                                  "anyOf": [
-                                    {
-                                      "$ref": "#/definitions/Prisma.PostWhereInput"
-                                    },
-                                    {
-                                      "type": "array",
-                                      "items": {
-                                        "$ref": "#/definitions/Prisma.PostWhereInput"
-                                      }
-                                    }
-                                  ]
-                                },
-                                "title": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "equals": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "in": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "notIn": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "lt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "lte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "contains": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "startsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "endsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "mode": {
-                                          "$ref": "#/definitions/Prisma.QueryMode"
-                                        },
-                                        "not": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "string"
-                                    }
-                                  ]
-                                },
-                                "content": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "equals": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "in": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "notIn": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "lt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "lte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "contains": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "startsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "endsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "mode": {
-                                          "$ref": "#/definitions/Prisma.QueryMode"
-                                        },
-                                        "not": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "string"
-                                    }
-                                  ]
-                                },
-                                "createdAt": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string",
-                                      "format": "date-time"
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "equals": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "in": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string",
-                                                "format": "date-time"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "notIn": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string",
-                                                "format": "date-time"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "lt": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "lte": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gt": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gte": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "not": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.NestedDateTimeFilter<\"Post\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "string"
-                                    }
-                                  ]
-                                },
-                                "updatedAt": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string",
-                                      "format": "date-time"
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "equals": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "in": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string",
-                                                "format": "date-time"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "notIn": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string",
-                                                "format": "date-time"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "lt": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "lte": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gt": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gte": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "not": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.NestedDateTimeFilter<\"Post\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "string"
-                                    }
-                                  ]
-                                },
-                                "authorId": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "equals": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "in": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "notIn": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "lt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "lte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "contains": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "startsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "endsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "mode": {
-                                          "$ref": "#/definitions/Prisma.QueryMode"
-                                        },
-                                        "not": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "string"
-                                    }
-                                  ]
-                                },
-                                "author": {
-                                  "anyOf": [
-                                    {
-                                      "allOf": [
-                                        {
-                                          "$ref": "#/definitions/Prisma.Without<Prisma.UserRelationFilter,Prisma.UserWhereInput>"
-                                        },
-                                        {
-                                          "$ref": "#/definitions/Prisma.UserWhereInput",
-                                          "description": "Deep Input Types"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "allOf": [
-                                        {
-                                          "$ref": "#/definitions/Prisma.Without<Prisma.UserWhereInput,Prisma.UserRelationFilter>"
-                                        },
-                                        {
-                                          "$ref": "#/definitions/Prisma.UserRelationFilter"
-                                        }
-                                      ]
-                                    }
-                                  ]
                                 }
-                              }
+                              ]
                             },
                             {
-                              "type": "object",
-                              "properties": {
-                                "id": {
-                                  "type": "string"
+                              "allOf": [
+                                {
+                                  "$ref": "#/definitions/{id:string;}_1"
                                 },
-                                "AND": {
-                                  "anyOf": [
-                                    {
-                                      "$ref": "#/definitions/Prisma.PostWhereInput"
+                                {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
                                     },
-                                    {
+                                    "AND": {
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "OR": {
                                       "type": "array",
                                       "items": {
                                         "$ref": "#/definitions/Prisma.PostWhereInput"
                                       }
+                                    },
+                                    "NOT": {
+                                      "anyOf": [
+                                        {
+                                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                                        },
+                                        {
+                                          "type": "array",
+                                          "items": {
+                                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    "title": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "equals": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "in": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "notIn": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "lt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "lte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "contains": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "startsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "endsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "mode": {
+                                              "$ref": "#/definitions/Prisma.QueryMode"
+                                            },
+                                            "not": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "content": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "equals": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "in": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "notIn": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "lt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "lte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "contains": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "startsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "endsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "mode": {
+                                              "$ref": "#/definitions/Prisma.QueryMode"
+                                            },
+                                            "not": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "createdAt": {
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "equals": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "in": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "notIn": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "lt": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "lte": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gt": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gte": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "not": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.NestedDateTimeFilter<\"Post\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "updatedAt": {
+                                      "anyOf": [
+                                        {
+                                          "type": "string",
+                                          "format": "date-time"
+                                        },
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "equals": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "in": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "notIn": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "lt": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "lte": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gt": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gte": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "not": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string",
+                                                  "format": "date-time"
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.NestedDateTimeFilter<\"Post\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "authorId": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "properties": {
+                                            "equals": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "in": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "notIn": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                },
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
+                                                }
+                                              ]
+                                            },
+                                            "lt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "lte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gt": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "gte": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "contains": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "startsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "endsWith": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            },
+                                            "mode": {
+                                              "$ref": "#/definitions/Prisma.QueryMode"
+                                            },
+                                            "not": {
+                                              "anyOf": [
+                                                {
+                                                  "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
+                                                },
+                                                {
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "string"
+                                        }
+                                      ]
+                                    },
+                                    "author": {
+                                      "description": "XOR is needed to have a real mutually exclusive union type\nhttps://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types",
+                                      "anyOf": [
+                                        {
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/Prisma.Without<Prisma.UserRelationFilter,Prisma.UserWhereInput>"
+                                            },
+                                            {
+                                              "$ref": "#/definitions/Prisma.UserWhereInput",
+                                              "description": "Deep Input Types"
+                                            }
+                                          ]
+                                        },
+                                        {
+                                          "allOf": [
+                                            {
+                                              "$ref": "#/definitions/Prisma.Without<Prisma.UserWhereInput,Prisma.UserRelationFilter>"
+                                            },
+                                            {
+                                              "$ref": "#/definitions/Prisma.UserRelationFilter"
+                                            }
+                                          ]
+                                        }
+                                      ]
                                     }
-                                  ]
-                                },
-                                "OR": {
-                                  "type": "array",
-                                  "items": {
-                                    "$ref": "#/definitions/Prisma.PostWhereInput"
                                   }
-                                },
-                                "NOT": {
-                                  "anyOf": [
-                                    {
-                                      "$ref": "#/definitions/Prisma.PostWhereInput"
-                                    },
-                                    {
-                                      "type": "array",
-                                      "items": {
-                                        "$ref": "#/definitions/Prisma.PostWhereInput"
-                                      }
-                                    }
-                                  ]
-                                },
-                                "title": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "equals": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "in": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "notIn": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "lt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "lte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "contains": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "startsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "endsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "mode": {
-                                          "$ref": "#/definitions/Prisma.QueryMode"
-                                        },
-                                        "not": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "string"
-                                    }
-                                  ]
-                                },
-                                "content": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "equals": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "in": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "notIn": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "lt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "lte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "contains": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "startsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "endsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "mode": {
-                                          "$ref": "#/definitions/Prisma.QueryMode"
-                                        },
-                                        "not": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "string"
-                                    }
-                                  ]
-                                },
-                                "createdAt": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string",
-                                      "format": "date-time"
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "equals": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "in": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string",
-                                                "format": "date-time"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "notIn": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string",
-                                                "format": "date-time"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "lt": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "lte": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gt": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gte": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "not": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.NestedDateTimeFilter<\"Post\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "string"
-                                    }
-                                  ]
-                                },
-                                "updatedAt": {
-                                  "anyOf": [
-                                    {
-                                      "type": "string",
-                                      "format": "date-time"
-                                    },
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "equals": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "in": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string",
-                                                "format": "date-time"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "notIn": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string",
-                                                "format": "date-time"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "lt": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "lte": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gt": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gte": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"DateTime\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "not": {
-                                          "anyOf": [
-                                            {
-                                              "type": "string",
-                                              "format": "date-time"
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.NestedDateTimeFilter<\"Post\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "string"
-                                    }
-                                  ]
-                                },
-                                "authorId": {
-                                  "anyOf": [
-                                    {
-                                      "type": "object",
-                                      "properties": {
-                                        "equals": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "in": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "notIn": {
-                                          "anyOf": [
-                                            {
-                                              "type": "array",
-                                              "items": {
-                                                "type": "string"
-                                              }
-                                            },
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String[]\">"
-                                            }
-                                          ]
-                                        },
-                                        "lt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "lte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gt": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "gte": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "contains": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "startsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "endsWith": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.FieldRef<\"Post\",\"String\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        },
-                                        "mode": {
-                                          "$ref": "#/definitions/Prisma.QueryMode"
-                                        },
-                                        "not": {
-                                          "anyOf": [
-                                            {
-                                              "$ref": "#/definitions/Prisma.NestedStringFilter<\"Post\">"
-                                            },
-                                            {
-                                              "type": "string"
-                                            }
-                                          ]
-                                        }
-                                      }
-                                    },
-                                    {
-                                      "type": "string"
-                                    }
-                                  ]
-                                },
-                                "author": {
-                                  "anyOf": [
-                                    {
-                                      "allOf": [
-                                        {
-                                          "$ref": "#/definitions/Prisma.Without<Prisma.UserRelationFilter,Prisma.UserWhereInput>"
-                                        },
-                                        {
-                                          "$ref": "#/definitions/Prisma.UserWhereInput",
-                                          "description": "Deep Input Types"
-                                        }
-                                      ]
-                                    },
-                                    {
-                                      "allOf": [
-                                        {
-                                          "$ref": "#/definitions/Prisma.Without<Prisma.UserWhereInput,Prisma.UserRelationFilter>"
-                                        },
-                                        {
-                                          "$ref": "#/definitions/Prisma.UserRelationFilter"
-                                        }
-                                      ]
-                                    }
-                                  ]
                                 }
-                              }
+                              ]
                             },
                             {
                               "type": "array",
@@ -1998,68 +2016,7 @@
                     }
                   }
                 },
-                "path": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "responses": {
-              "type": "object",
-              "properties": {
-                "200": {
-                  "type": "object",
-                  "properties": {
-                    "posts": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "title": {
-                            "type": "string"
-                          },
-                          "content": {
-                            "type": "string"
-                          },
-                          "createdAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "updatedAt": {
-                            "type": "string",
-                            "format": "date-time"
-                          },
-                          "authorId": {
-                            "type": "string"
-                          }
-                        }
-                      }
-                    },
-                    "id": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "password": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    },
-                    "updatedAt": {
-                      "type": "string",
-                      "format": "date-time"
-                    }
-                  }
-                }
+                "path": {}
               }
             }
           }

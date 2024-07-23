@@ -7,25 +7,25 @@ import {
   SymbolFlags,
   type Signature,
   TypeFlags,
-  TypeAliasDeclaration
-} from 'ts-morph';
-import type { FormattedType } from '../types/core.js';
+  TypeAliasDeclaration,
+} from "ts-morph";
+import type { FormattedType } from "../types/core.js";
 
 const PRIMITIVE_TYPES = new Set([
-  'string',
-  'number',
-  'boolean',
-  'undefined',
-  'null',
-  'unknown',
-  'any',
-  'void',
-  'date',
-  'Date',
-  'bigint'
+  "string",
+  "number",
+  "boolean",
+  "undefined",
+  "null",
+  "unknown",
+  "any",
+  "void",
+  "date",
+  "Date",
+  "bigint",
 ]);
 
-type FormatFlags = 'remove-undefined-from-intersections' | false;
+type FormatFlags = "remove-undefined-from-intersections" | false;
 
 interface FootprintParams {
   file: SourceFile;
@@ -46,7 +46,7 @@ export function footprintOfType({
   node,
   overrides = {},
   flags = [],
-  depth = 0
+  depth = 0,
 }: FootprintParams): FormattedType {
   // Check if we've already processed this type
   if (processedTypes.has(type)) {
@@ -54,6 +54,7 @@ export function footprintOfType({
   }
 
   if (depth > MAX_DEPTH) {
+    throw new Error(`Max depth exceeded for type: ${type.getText()}`);
     // If we've exceeded the maximum depth, try to import the type instead
     const importInfo = getTypeImport(type, file);
 
@@ -65,7 +66,7 @@ export function footprintOfType({
     console.warn(
       `Max depth exceeded for type: ${type.getText()}. Using 'any' instead.`
     );
-    return { typeString: 'any', imports: new Set() };
+    return { typeString: "any", imports: new Set() };
   }
 
   const symbol = type.isEnum() ? type.getSymbol() : type.getAliasSymbol();
@@ -80,10 +81,10 @@ export function footprintOfType({
       node,
       overrides,
       flags: [...flags, ...nextFlags],
-      depth: depth + 1
+      depth: depth + 1,
     });
 
-  let result: FormattedType = { typeString: '', imports: new Set() };
+  let result: FormattedType = { typeString: "", imports: new Set() };
 
   if (isPrimitive(type)) {
     let typeString: string;
@@ -110,8 +111,8 @@ export function footprintOfType({
     result.typeString = isPrimitive(elementType)
       ? `${elementResult.typeString}[]`
       : `Array<\n${indent(elementResult.typeString)}\n>`;
-  } else if (type.isObject() && type.getSymbol()?.getName() === 'Date') {
-    result.typeString = 'Date';
+  } else if (type.isObject() && type.getSymbol()?.getName() === "Date") {
+    result.typeString = "Date";
   }
   if (type.isTuple()) {
     const tupleResults = type
@@ -119,7 +120,7 @@ export function footprintOfType({
       .map((elementType) => next(elementType, flags));
     const imports = new Set(tupleResults.flatMap((r) => Array.from(r.imports)));
     const typeString = `[\n${indent(
-      tupleResults.map((r) => r.typeString).join(',\n')
+      tupleResults.map((r) => r.typeString).join(",\n")
     )}\n]`;
     return { typeString, imports };
   }
@@ -131,9 +132,14 @@ export function footprintOfType({
       ? `Promise<${promiseResult.typeString}>`
       : `Promise<\n${indent(promiseResult.typeString)}\n>`;
   } else if (isSimpleSignature(type)) {
-    result = formatSignatures(type.getCallSignatures(), 'type', next);
+    result = formatSignatures(type.getCallSignatures(), "type", next);
   } else if (type.isObject()) {
-    result = formatObject(type, node, next);
+    try {
+      result = formatObject(type, node, next);
+    } catch (e) {
+      console.error(e);
+      result = getTypeImport(type, file);
+    }
   } else if (type.isUnion()) {
     result = formatUnion(type, flags, next);
   } else if (type.isIntersection()) {
@@ -149,8 +155,8 @@ export function footprintOfType({
         }
       }
     } else {
-      console.warn('Unhandled type:', type.getText());
-      result.typeString = 'any'; // or 'unknown', depending on your preference
+      console.warn("Unhandled type:", type.getText());
+      result.typeString = "any"; // or 'unknown', depending on your preference
     }
   }
 
@@ -184,7 +190,7 @@ function getTypeImport(type: Type, sourceFile: SourceFile): FormattedType {
 
       return {
         typeString: aliasName,
-        imports
+        imports,
       };
     }
     return null;
@@ -201,12 +207,12 @@ function getTypeImport(type: Type, sourceFile: SourceFile): FormattedType {
   // If no matching alias is found, fall back to the full type text
   return {
     typeString: type.getText(),
-    imports
+    imports,
   };
 }
 
 function isDateType(type: Type): boolean {
-  return type.isObject() && type.getSymbol()?.getName() === 'Date';
+  return type.isObject() && type.getSymbol()?.getName() === "Date";
 }
 
 function isPrimitive(type: Type): boolean {
@@ -228,7 +234,7 @@ function isPromise(type: Type): boolean {
   const symbol = type.getSymbol();
   return (
     type.isObject() &&
-    symbol?.getName() === 'Promise' &&
+    symbol?.getName() === "Promise" &&
     type.getTypeArguments().length === 1
   );
 }
@@ -246,17 +252,17 @@ function isSimpleSignature(type: Type): boolean {
 }
 
 function indent(text: string, level: number = 1): string {
-  return text.replace(/^/gm, ' '.repeat(level * 2));
+  return text.replace(/^/gm, " ".repeat(level * 2));
 }
 
 function formatSignatures(
   sigs: Signature[],
-  variant: 'type' | 'declaration',
+  variant: "type" | "declaration",
   next: (type: Type, flags: FormatFlags[]) => FormattedType
 ): FormattedType {
   const results = sigs.map((sig) => formatSignature(sig, variant, next));
   const imports = new Set(results.flatMap((r) => Array.from(r.imports)));
-  const typeString = results.map((r) => r.typeString).join('\n');
+  const typeString = results.map((r) => r.typeString).join("\n");
   return { typeString, imports };
 }
 
@@ -277,7 +283,7 @@ function formatObject(
     return {
       name: prop.getName(),
       optional: prop.hasFlags(SymbolFlags.Optional),
-      ...propResult
+      ...propResult,
     };
   });
 
@@ -285,8 +291,8 @@ function formatObject(
     propertyResults.flatMap((p) => Array.from(p.imports))
   );
   const typeString = `{${propertyResults
-    .map((p) => `  ${p.name}${p.optional ? '?' : ''}: ${p.typeString};`)
-    .join('\n')}}`;
+    .map((p) => `  ${p.name}${p.optional ? "?" : ""}: ${p.typeString};`)
+    .join("\n")}}`;
 
   return { typeString, imports };
 }
@@ -296,12 +302,12 @@ function formatGenericObject(
   typeArguments: Type[],
   next: (type: Type, flags: FormatFlags[]) => FormattedType
 ): FormattedType {
-  const baseTypeName = type.getSymbol()?.getName() || 'unknown';
+  const baseTypeName = type.getSymbol()?.getName() || "unknown";
   const typeArgResults = typeArguments.map((arg) => next(arg, []));
   const imports = new Set(typeArgResults.flatMap((r) => Array.from(r.imports)));
   const typeString = `${baseTypeName}<${typeArgResults
     .map((r) => r.typeString)
-    .join(', ')}>`;
+    .join(", ")}>`;
   return { typeString, imports };
 }
 
@@ -314,13 +320,13 @@ function formatUnion(
     .getUnionTypes()
     .filter(
       (t) =>
-        !flags.includes('remove-undefined-from-intersections') ||
+        !flags.includes("remove-undefined-from-intersections") ||
         !t.isUndefined()
     )
     .map((t) => next(t, flags));
 
   const imports = new Set(results.flatMap((r) => Array.from(r.imports)));
-  const typeString = results.map((r) => r.typeString).join(' | ');
+  const typeString = results.map((r) => r.typeString).join(" | ");
   return { typeString, imports };
 }
 
@@ -340,7 +346,7 @@ function formatIntersection(
   const nonObjectTypes: string[] = [];
 
   results.forEach((r) => {
-    if (r.typeString.trim().startsWith('{')) {
+    if (r.typeString.trim().startsWith("{")) {
       // This is an object type, extract its properties
       objectTypes.push(r.typeString.slice(1, -1).trim());
     } else {
@@ -351,7 +357,7 @@ function formatIntersection(
 
   // Combine object types
   const combinedObjectType =
-    objectTypes.length > 0 ? `{\n${objectTypes.join('\n')}\n}` : '';
+    objectTypes.length > 0 ? `{\n${objectTypes.join("\n")}\n}` : "";
 
   // Combine all types
   const allTypes = [...nonObjectTypes];
@@ -361,7 +367,7 @@ function formatIntersection(
 
   const typeString =
     allTypes.length > 1
-      ? `(\n${indent(allTypes.join(' &\n'))}\n)`
+      ? `(\n${indent(allTypes.join(" &\n"))}\n)`
       : allTypes[0];
 
   return { typeString, imports };
@@ -383,26 +389,26 @@ function formatProperty(
   ) {
     const result = formatSignature(
       firstSig,
-      'declaration',
+      "declaration",
       next,
       prop.getName()
     );
-    return { ...result, typeString: result.typeString + ';' };
+    return { ...result, typeString: result.typeString + ";" };
   }
 
   const isOptional = prop.hasFlags(SymbolFlags.Optional);
   const result = next(
     type,
-    [isOptional ? 'remove-undefined-from-intersections' : false].filter(
+    [isOptional ? "remove-undefined-from-intersections" : false].filter(
       (flag): flag is FormatFlags => flag !== false
     )
   );
 
   return {
     ...result,
-    typeString: `${prop.getName()}${isOptional ? '?' : ''}: ${
+    typeString: `${prop.getName()}${isOptional ? "?" : ""}: ${
       result.typeString
-    };`
+    };`,
   };
 }
 
@@ -419,26 +425,26 @@ function formatProperties(
       if (Node.isIndexSignatureDeclaration(declaration)) return false;
       if (prop.getDeclarations().some(Node.isMethodDeclaration)) return false;
       const name = prop.getName();
-      if (name.startsWith('__@')) return false;
+      if (name.startsWith("__@")) return false;
       return true;
     })
     .map((prop) => formatProperty(prop, node, next));
 
   const imports = new Set(results.flatMap((r) => Array.from(r.imports)));
-  const typeString = results.map((r) => r.typeString).join('\n');
+  const typeString = results.map((r) => r.typeString).join("\n");
   return { typeString, imports };
 }
 
 function formatSignature(
   sig: Signature,
-  variant: 'type' | 'declaration',
+  variant: "type" | "declaration",
   next: (type: Type, flags: FormatFlags[]) => FormattedType,
   methodName?: string,
   flags: FormatFlags[] = []
 ): FormattedType {
   const name = sig.getDeclaration().getSymbol()?.getName();
   const nameToUse =
-    methodName ?? (['__type', '__call'].includes(name ?? '') ? '' : name);
+    methodName ?? (["__type", "__call"].includes(name ?? "") ? "" : name);
 
   const paramResults = sig.getParameters().map((param) => {
     const paramType = param
@@ -447,15 +453,15 @@ function formatSignature(
       .reduce(
         (acc, curr) => ({
           typeString: acc.typeString + curr.typeString,
-          imports: new Set([...acc.imports, ...curr.imports])
+          imports: new Set([...acc.imports, ...curr.imports]),
         }),
-        { typeString: '', imports: new Set<string>() }
+        { typeString: "", imports: new Set<string>() }
       );
 
     return {
       name: param.getName(),
       optional: param.hasFlags(SymbolFlags.Optional),
-      ...paramType
+      ...paramType,
     };
   });
 
@@ -463,16 +469,16 @@ function formatSignature(
 
   const imports = new Set([
     ...paramResults.flatMap((p) => Array.from(p.imports)),
-    ...Array.from(returnTypeResult.imports)
+    ...Array.from(returnTypeResult.imports),
   ]);
 
   const paramsString = paramResults
-    .map((p) => `${p.name}${p.optional ? '?' : ''}: ${p.typeString}`)
-    .join(', ');
+    .map((p) => `${p.name}${p.optional ? "?" : ""}: ${p.typeString}`)
+    .join(", ");
 
   const typeString = `${
-    variant === 'declaration' ? nameToUse : ''
-  }(${paramsString})${variant === 'declaration' ? ': ' : ' => '}${
+    variant === "declaration" ? nameToUse : ""
+  }(${paramsString})${variant === "declaration" ? ": " : " => "}${
     returnTypeResult.typeString
   }`;
 

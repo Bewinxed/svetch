@@ -3,7 +3,8 @@ import * as fs from 'node:fs';
 import prompts, { type PromptObject } from 'prompts';
 import { log } from './utils/logger.js';
 import { main } from './generator.js';
-import { performance } from 'perf_hooks';
+import { performance } from 'node:perf_hooks';
+import ora, { oraPromise } from 'ora';
 
 const separator = '--------------------------------------';
 
@@ -51,8 +52,7 @@ function parseArgs(rawArgs: string[]): ScriptArgs {
   return { ...defaultArgs, ...parsedArgs };
 }
 
-const workingDir = process.env.PWD ?? process.cwd();
-
+const workingDir = process.cwd();
 export async function initSvetchrc() {
   console.log(`
   _____               _          _     
@@ -126,34 +126,40 @@ function measureTime(fn: () => void, label: string) {
 }
 
 function readSvetchrc() {
-  return measureTime(() => {
-    try {
-      const config = fs.readFileSync('.svetchrc', 'utf8');
-      return JSON.parse(config);
-    } catch (error) {
-      console.error('Error reading .svetchrc file:', error);
-      process.exit(1);
-    }
-  }, 'Reading .svetchrc');
+  try {
+    const config = fs.readFileSync('.svetchrc', 'utf8');
+    return JSON.parse(config);
+  } catch (error) {
+    console.error('Error reading .svetchrc file:', error);
+    process.exit(1);
+  }
 }
 
 export async function runAll() {
   const start = performance.now();
-
-  if (isInit || !fs.existsSync(path.resolve(workingDir, '.svetchrc'))) {
-    await measureTime(async () => {
+  const spinner = ora({ color: 'yellow' }).start('Starting task');
+  console.debug(path.resolve(workingDir, '.svetchrc'));
+  try {
+    if (isInit || !fs.existsSync(path.resolve(workingDir, '.svetchrc'))) {
+      spinner.color = 'blue';
+      spinner.text = 'Initializing Svetchrc';
       await initSvetchrc();
-    }, 'Initializing Svetchrc');
+      spinner.succeed('Svetchrc initialized');
+    }
+    spinner.color = 'green';
+    spinner.text = 'Running main function';
+    await main(parseArgs(args));
+    const end = performance.now();
+    spinner.succeed(`Task completed in ${(end - start).toFixed(2)}ms`);
+  } catch (error) {
+    spinner.fail(`Task failed: ${(error as Error).message}`);
+    // nicely print stack trace
+    console.error(error);
 
-    measureTime(() => {
-      main(parseArgs(args));
-    }, 'Running main function');
-  } else {
-    measureTime(() => {
-      main(parseArgs(args));
-    }, 'Running main function');
+    throw error;
+  } finally {
+    const end = performance.now();
+    console.log(`Total execution time: ${(end - start).toFixed(2)}ms`);
+    process.exit(0);
   }
-
-  const end = performance.now();
-  console.log(`Total execution time: ${(end - start).toFixed(2)}ms`);
 }
