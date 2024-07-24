@@ -16,6 +16,7 @@ import {
   type ObjectLiteralExpression,
   Project,
   type PropertyAssignment,
+  ReturnStatement,
   type SourceFile,
   SyntaxKind,
   ts,
@@ -48,7 +49,7 @@ import { inspect } from "node:util";
 const __filename = fileURLToPath(import.meta.url);
 
 const __dirname = path.dirname(__filename);
-const workingDir = process.env.PWD ?? process.cwd();
+const workingDir = process.env.INIT_CWD || process.cwd();
 
 const separator = "--------------------------------------";
 
@@ -636,12 +637,12 @@ function node_text_snippet(node: Node) {
 }
 
 function processReturnStatement(
-  node: Node,
+  node: ReturnStatement,
   status: number,
   resultsDeclaration: TypeReferenceNode | undefined,
   spinner: Ora
 ) {
-  const expression: Node = node.getExpression();
+  const expression = node.getExpression();
   if (!expression) {
     spinner.warn(
       `Detected return statement without expression ${node_text_snippet(node)}`
@@ -783,7 +784,7 @@ function processFailExpression(
 }
 
 function processReturnExpression(
-  expression: CallLikeExpression | NewExpression,
+  expression: CallExpression<ts.CallExpression> | NewExpression,
   status: number,
   resultsDeclaration: TypeReferenceNode | undefined,
   spinner: Ora
@@ -800,8 +801,7 @@ function processReturnExpression(
       (arg) => arg.getKind() === SyntaxKind.ObjectLiteralExpression
     );
     if (arg) {
-      log.warn(
-        4,
+      spinner.warn(
         `Args: ${arg
           .getChildren()
           .map((arg) => arg.getText())

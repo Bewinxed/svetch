@@ -53,6 +53,14 @@ export const PATCH = async ({ request, params, url }) => {
     );
   }
 
+  if (a) {
+    return new Response(`${url}${params ? `&${params.toString()}` : ""}`, {
+      headers: {
+        "content-type": "text/plain",
+      },
+    });
+  }
+
   if (nah) {
     throw error(400, "Bad Request");
   } else if (blah) {
