@@ -1,3 +1,3 @@
-import ora from 'ora';
+import ora from "ora";
 
-export const spinner = ora({ color: 'yellow' }).start('Starting task');
+export const spinner = ora({ color: "yellow" });

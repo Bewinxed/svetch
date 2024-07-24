@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { json } from "stream/consumers";
 export const POST = async ({ request }) => {
   const payload = {} as Prisma.UserCreateInput;
 
@@ -32,15 +33,11 @@ export const PATCH = async ({ request, params, url }) => {
     include: {
       author: true;
     };
-  }> & {
-    uwu: {
-      uwu: {
-        uwu: {
-          uwu: "owo";
-        };
-      };
-    };
-  };
+  }>
+
+  if (ree) {
+    return new Response("hi");
+  }
 
   if (blah) {
     const;
@@ -59,6 +56,13 @@ export const PATCH = async ({ request, params, url }) => {
         "content-type": "text/plain",
       },
     });
+  }
+
+  if (obj) {
+    return json({
+      owo:"what's this?",
+      id: params.id,
+    })
   }
 
   if (nah) {

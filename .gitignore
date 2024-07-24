@@ -6,8 +6,8 @@
 /tmp
 /node_modules
 oclif.manifest.json
-
-
+/src/lib/api
+/src/api/schemas
 yarn.lock
 package-lock.json
 
