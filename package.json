@@ -62,10 +62,9 @@
   "scripts": {
     "build": "rm -rf dist && npx swc src -d dist && cp -r src/assets dist/src/assets",
     "bump": "npm version patch",
-    "publish": "npm publish",
     "yolo": "npm run bump && npm run build && npm run publish"
   },
   "type": "module",
   "types": "./dist/src/index.d.ts",
-  "version": "2.0.23"
+  "version": "2.0.24"
 }
