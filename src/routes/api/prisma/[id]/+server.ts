@@ -1,4 +1,6 @@
 import type { Prisma } from "@prisma/client";
+import type { Session } from "lucia";
+import { json } from "stream/consumers";
 export const POST = async ({ request }) => {
 	const payload = {} as Prisma.UserCreateInput;
 
@@ -39,13 +41,12 @@ export const PATCH = async ({ request, params, url }) => {
 	}
 
 	if (blah) {
-		return json(
-			results as {
-				uwu: {
-					owo: "uwu";
-				};
-			},
-		);
+		const posts = [] as Prisma.PostGetPayload<{
+			include: {
+				author: true;
+			};
+		}>[];
+		return json(posts);
 	}
 
 	if (a) {
@@ -82,6 +83,11 @@ export const PATCH = async ({ request, params, url }) => {
 		throw error(400, "Bad Request");
 	} else if (blah) {
 		return error(500, "Internal Server Error");
+	}
+
+	if (lucia) {
+		const session = {} as Session;
+		return json(session);
 	}
 	return json(results);
 };

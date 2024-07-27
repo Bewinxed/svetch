@@ -116,8 +116,9 @@ export async function initSvetchrc() {
 
 function readSvetchrc() {
 	try {
-		const config = fs.readFileSync(".svetchrc", "utf8");
-		return JSON.parse(config);
+		const config_file = fs.readFileSync(".svetchrc", "utf8");
+		const config = JSON.parse(config_file) as ScriptArgs;
+		return config;
 	} catch (error) {
 		console.error("Error reading .svetchrc file:", error);
 		process.exit(1);

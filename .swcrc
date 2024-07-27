@@ -23,11 +23,12 @@
   "minify": false,
   "sourceMaps": true,
   "isModule": true,
+
   "exclude": [
     "node_modules",
     "src/routes/**",
     "src/routes",
-    "src/lib",
+    "src/lib/api",
     "src/assets"
   ]
 }

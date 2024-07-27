@@ -1,5 +1,5 @@
-import type { ErrorDetails } from "@/types/core.js";
-import { mock_node } from "@/utils/helpers/mock.js";
+import type { ErrorDetails } from "../../../types/core.js";
+import { mock_node } from "../../../utils/helpers/mock.js";
 import { Node, SyntaxKind, type CallExpression } from "ts-morph";
 
 export function extract_kit_error(

@@ -7,8 +7,8 @@ import {
 	SymbolFlags,
 	type Signature,
 	TypeFlags,
-	TypeAliasDeclaration,
-	TypeChecker,
+	type TypeAliasDeclaration,
+	type TypeChecker,
 } from "ts-morph";
 import type { FormattedType } from "../types/core.js";
 
@@ -26,7 +26,7 @@ const PRIMITIVE_TYPES = new Set([
 	"bigint",
 ]);
 
-type FormatFlags = "remove-undefined-from-intersections" | false;
+type FormatFlags = "remove-undefined-from-intersections" | false | "traverse";
 
 interface FootprintParams {
 	type: Type;
@@ -39,7 +39,8 @@ interface FootprintParams {
 
 const processedTypes = new WeakMap<Type, FormattedType>();
 
-const MAX_DEPTH = 3; // Adjust this value as needed
+const DEPTH_LIMIT = 3; // Adjust this value as needed
+const MAX_DEPTH = 10; // Adjust this value as needed
 
 function handlePrimitiveType(type: Type): FormattedType {
 	let typeString: string;
@@ -146,7 +147,11 @@ export function footprintOfType({
 	//   });
 	// }
 
-	if (depth > MAX_DEPTH) {
+	if (depth > DEPTH_LIMIT && !flags.includes("traverse")) {
+		throw new Error(`Max depth exceeded for type: ${type.getText()}`);
+	}
+
+	if (depth > MAX_DEPTH && flags.includes("traverse")) {
 		throw new Error(`Max depth exceeded for type: ${type.getText()}`);
 	}
 
@@ -182,8 +187,14 @@ export function footprintOfType({
 		});
 
 	// log the type of type
-
-	if (isPrimitive(type)) {
+	// if prisma type
+	const imported_type = getTypeImport(type, node.getSourceFile());
+	if (imported_type) {
+		return imported_type;
+	}
+	if (type.getText().includes("Prisma.") || type.getText().includes("prisma.")) {
+		result = getTypeImport(type, node.getSourceFile());
+	} else if (isPrimitive(type)) {
 		// console.log("primitive", type.getText());
 		result = handlePrimitiveType(type);
 	} else if (type.isArray()) {
@@ -207,7 +218,7 @@ export function footprintOfType({
 		try {
 			result = formatIntersection(type, node, flags, next);
 		} catch (e) {
-			// console.error((e as Error).message);
+			console.error((e as Error).message);
 			result = getTypeImport(type, node.getSourceFile());
 		}
 	} else {

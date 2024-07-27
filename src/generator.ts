@@ -4,10 +4,10 @@ import * as os from "node:os";
 import * as path from "node:path";
 
 import {
-	type CallExpression,
+	CallExpression,
 	type CatchClause,
 	FunctionDeclaration,
-	type Identifier,
+	Identifier,
 	type ImportDeclaration,
 	NewExpression,
 	Node,
@@ -20,12 +20,12 @@ import {
 	StringLiteral,
 	SyntaxKind,
 	type ThrowStatement,
-	type TypeAliasDeclaration,
+	TypeAliasDeclaration,
 	type TypeChecker,
 	type TypeNode,
 	type TypeReferenceNode,
-	type VariableDeclaration,
-	type VariableStatement
+	VariableDeclaration,
+	type VariableStatement,
 } from "ts-morph";
 import * as TJS from "typescript-json-schema";
 import type {
@@ -40,7 +40,7 @@ import ansiColors from "ansi-colors";
 import { parseSchema } from "json-schema-to-zod";
 import { fileURLToPath } from "node:url";
 import ora, { type Ora } from "ora";
-import { extract_kit_error } from "./routes/parsers/sveltekit/responses.js";
+import { extract_kit_error } from "./lib/parsers/sveltekit/responses.js";
 import type { Telemetry } from "./types/telemetry.js";
 import { extractPayloadTypeNode } from "./utils/endpoint_extractors.js";
 import {
@@ -103,12 +103,8 @@ let {
 	telemetry,
 } = {} as ScriptArgs;
 
-const project = new Project({
-	compilerOptions: { allowJs: true },
-	tsConfigFilePath: tsconfig,
-});
-
-const typeChecker = project.getTypeChecker();
+let project: Project;
+let typeChecker: TypeChecker;
 
 let outputPath: string;
 let schemaOutputPath: string;
@@ -119,11 +115,17 @@ const actions: Record<string, Record<string, any>> = {};
 const importMap = {};
 
 function processTypeNode(node: Node): FormattedType {
-	return footprintOfType({
+	const footprint = footprintOfType({
 		type: typeChecker.getTypeAtLocation(node),
 		node: node,
 		typeChecker: typeChecker,
 	});
+	// console.error(node.getText(), footprint.typeString);
+	// if the type is any
+	if (footprint.typeString === "any") {
+		console.error(node.getKindName(), node.getText());
+	}
+	return footprint;
 }
 
 function extractPathParams(path: string): Record<string, string> {
@@ -529,9 +531,12 @@ function file_path_to_endpoint_url(filePath: string): string {
 function getAllDeclarations(
 	declaration: FunctionDeclaration | VariableDeclaration,
 ) {
+	// console.log(declaration.getKindName());
 	return declaration instanceof FunctionDeclaration
 		? declaration.getDescendants()
-		: declaration.getInitializer()?.getDescendants();
+		: TypeAliasDeclaration.isTypeAliasDeclaration(declaration)
+			? declaration.getDescendants()
+			: declaration.getInitializer()?.getDescendants();
 }
 
 function extractJSDoc(declaration: FunctionDeclaration | VariableDeclaration) {
@@ -688,7 +693,10 @@ function process_expression(expression: Node, spinner: Ora) {
 		);
 		return process_expression(expression.getExpression(), spinner);
 	}
-	console.warn(`unhandled expression`, expression.getKindName());
+	if (Node.isAwaitExpression(expression)) {
+		return process_expression(expression.getExpression(), spinner);
+	}
+	console.error(`unhandled expression`, expression.getKindName());
 }
 
 function processThrowDetails(node: Node) {
@@ -772,7 +780,6 @@ function processFailExpression(
 	}
 	return { status, resultsDeclaration };
 }
-
 
 function process_call_expression(
 	expression: CallExpression | NewExpression,
@@ -1130,6 +1137,7 @@ function ms_to_human_readable(ms: number) {
 async function processFiles(spinner: Ora) {
 	const start = performance.now();
 	const all_files = project.getSourceFiles();
+	console.log(all_files.map((file) => file.getFilePath()));
 	spinner.text = "Scanning for API endpoints...";
 	spinner.info(
 		`Found ${all_files.length} files in ${ms_to_human_readable(
@@ -1246,15 +1254,13 @@ async function generateApiTypes() {
 	const methodsWithEndpoints = new Set<HTTP_METHOD>();
 
 	for (const [apiPath, methodMap] of endpoints) {
-		const formattedPath = apiPath.replace(/^\//, "").replace(/\//g, ".");
-
 		for (const [method, endpointDef] of methodMap) {
 			if (!methodTypes[method]) {
 				methodTypes[method] = `export interface ${method} {\n`;
 			}
 			methodsWithEndpoints.add(method);
 
-			methodTypes[method] += `  '${formattedPath}': {\n`;
+			methodTypes[method] += `  '${apiPath}': {\n`;
 
 			if (endpointDef.docs) {
 				methodTypes[method] += `    ${endpointDef.docs}\n`;
@@ -1391,13 +1397,12 @@ const generateParametersType = (
 };
 
 const generateResponsesType = (
-	responses?: Record<number, FormattedType[]>,
+	responses?: Partial<Record<number, FormattedType[]>>,
 ): string => {
 	if (!responses) return "undefined";
 	const responseTypes: string[] = [];
 	for (const [status, responseArray] of Object.entries(responses)) {
-		const types = responseArray
-			.map((response) => response.typeString)
+		const types = responseArray?.map((response) => response.typeString)
 			.join(" | ");
 		responseTypes.push(`    ${status}: ${types}`);
 	}
@@ -1737,15 +1742,21 @@ async function generateAll() {
 			)}`,
 		);
 
-		await Promise.all([
+		await Promise.allSettled([
 			fs.promises.writeFile(path.join(outputPath, "api.ts"), apiOutput, {
 				encoding: "utf-8",
 			}),
-			generateSchema(),
 			generateSvetchDocs(),
-		]);
-
-		await generateClientOutput(client);
+		]).then(async () => {
+			try {
+				await generateSchema();
+			} catch (error) {
+				spinner.warn(
+					`Error generating schema, please report this to the developer: ${error}`,
+				);
+			}
+			await generateClientOutput(client);
+		});
 
 		spinner.succeed(
 			`Generated API components successfully, ${ms_to_human_readable(
@@ -1770,8 +1781,17 @@ export async function main(args: ScriptArgs) {
 	staticFolder = args.staticFolder;
 	telemetry = args.telemetry;
 
+	project = new Project({
+		compilerOptions: { allowJs: true },
+		tsConfigFilePath: tsconfig,
+		skipAddingFilesFromTsConfig: true,
+	});
+	typeChecker = project.getTypeChecker();
+
 	const spinner = ora("Scanning for API endpoints...").start();
+
 	project.addSourceFilesAtPaths([`${input}/**/*+server.ts`]);
+	project.resolveSourceFileDependencies();
 
 	// Change output path here:
 	outputPath = path.join(workingDir, out);
@@ -1792,7 +1812,6 @@ export async function main(args: ScriptArgs) {
 	if (!fs.existsSync(outputPath)) {
 		fs.mkdirSync(outputPath, { recursive: true });
 	}
-	// throw new Error('I DONT LIKE CINNABON');
 	const processed_files = await processFiles(spinner);
 	await generateAll();
 
