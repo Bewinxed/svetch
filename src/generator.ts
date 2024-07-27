@@ -4,23 +4,28 @@ import * as os from "node:os";
 import * as path from "node:path";
 
 import {
-	type CallExpression,
+	AsExpression,
+	CallExpression,
 	type CallLikeExpression,
 	type CatchClause,
 	type ExportedDeclarations,
-	Expression,
+	type Expression,
 	FunctionDeclaration,
 	Identifier,
 	type ImportDeclaration,
-	type NewExpression,
+	NewExpression,
 	Node,
+	NumericLiteral,
 	ObjectLiteralExpression,
 	Project,
+	PropertyAccessExpression,
 	PropertyAssignment,
-	ReturnStatement,
+	type ReturnStatement,
 	type SourceFile,
 	SyntaxKind,
-	ts,
+	SyntaxList,
+	ThrowStatement,
+	type ts,
 	type TypeAliasDeclaration,
 	type TypeChecker,
 	type TypeNode,
@@ -31,6 +36,7 @@ import {
 import * as TJS from "typescript-json-schema";
 import type {
 	EndpointDefinition,
+	ErrorDetails,
 	FormattedType,
 	HTTP_METHOD,
 	ScriptArgs,
@@ -42,14 +48,18 @@ import ora, { type Ora } from "ora";
 import { footprintOfType } from "./utils/svelte-codegen.js";
 import type { Telemetry } from "./types/telemetry.js";
 import { extractPayloadTypeNode } from "./utils/endpoint_extractors.js";
-import { log } from "./utils/logger.js";
-import { spinner } from "./utils/ux/spinner.js";
+import {
+	log,
+	log_node_with_location,
+	node_location_and_line,
+} from "./utils/logger.js";
 import { parseSchema } from "json-schema-to-zod";
+import { extract_kit_error } from "./routes/parsers/sveltekit/responses.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
 const __dirname = path.dirname(__filename);
-const workingDir = process.env.INIT_CWD || process.cwd();
+const workingDir = path.resolve(".") || process.env.INIT_CWD || process.cwd();
 
 const separator = "--------------------------------------";
 
@@ -116,100 +126,10 @@ const importMap = {};
 
 function processTypeNode(node: Node): FormattedType {
 	return footprintOfType({
-		file: node.getSourceFile(),
 		type: typeChecker.getTypeAtLocation(node),
 		node: node,
 		typeChecker: typeChecker,
 	});
-	const memoized = new WeakMap<TypeNode, FormattedType>();
-
-	function processInner(innerNode: TypeNode): FormattedType {
-		if (memoized.has(innerNode)) {
-			return memoized.get(innerNode) as FormattedType;
-		}
-
-		let result: FormattedType;
-		if (
-			Node.isTypeReference(innerNode) ||
-			Node.hasStructure(innerNode)
-			// typeText.includes('Prisma')
-		) {
-			result = footprintOfType({
-				file: innerNode.getSourceFile(),
-				type: typeChecker.getTypeAtLocation(innerNode),
-				node: innerNode,
-				typeChecker: typeChecker,
-			});
-		} else if (Node.isObjectLiteralExpression(innerNode)) {
-			const processedObject = processObjectLiteral(
-				innerNode as ObjectLiteralExpression,
-			);
-			result = { typeString: processedObject, imports: new Set() };
-		} else {
-			result = { typeString: innerNode.getText(), imports: new Set() };
-		}
-
-		memoized.set(innerNode, result);
-		return result;
-	}
-
-	return processInner(node);
-}
-
-function processObjectLiteral(node: ObjectLiteralExpression): string {
-	let inferredTypes: Record<string, any> = {};
-
-	for (const property of node.getProperties()) {
-		if (Node.isPropertyAssignment(property)) {
-			const initializer = property.getInitializer();
-			const keyname = getPropertyKeyName(property);
-
-			if (!initializer || !keyname) continue;
-
-			inferredTypes[keyname] = getPropertyType(property, initializer, node);
-		}
-	}
-
-	return JSON.stringify(inferredTypes);
-}
-
-function getPropertyKeyName(property: PropertyAssignment): string | undefined {
-	try {
-		const computedName = property.getFirstChildByKind(
-			SyntaxKind.ComputedPropertyName,
-		);
-		if (computedName) {
-			const identifier = computedName.getFirstChildByKind(
-				SyntaxKind.Identifier,
-			);
-			return `${identifier?.getText()}: string`;
-		}
-		return property.getName();
-	} catch (e) {
-		console.error("Error getting property name:", e);
-		return property.getName();
-	}
-}
-
-function getPropertyType(
-	property: PropertyAssignment,
-	initializer: Node,
-	node: Node,
-): string {
-	if (
-		apiParams[node.getSourceFile().getFilePath()] &&
-		apiParams[node.getSourceFile().getFilePath()]
-			.getText()
-			.includes(initializer?.getText().replace("params.", ""))
-	) {
-		return "string";
-	}
-
-	if (Node.isPropertyAccessExpression(initializer)) {
-		return typeChecker.getTypeAtLocation(property).getText() || "any";
-	}
-
-	return typeChecker.getTypeAtLocation(initializer)?.getText() || "any";
 }
 
 function extractPathParams(path: string): Record<string, string> {
@@ -233,7 +153,7 @@ function extractQueryParameters(
 ) {
 	const queryParameters: Record<string, string> = {};
 
-	let searchParamsVariables = new Set<string>();
+	const searchParamsVariables = new Set<string>();
 
 	declaration.forEachDescendant((node: Node) => {
 		// Detect any declaration of url.searchParams and store the variable name
@@ -281,9 +201,9 @@ function extractQueryParameters(
 					if (argumentExpression && Node.isStringLiteral(argumentExpression)) {
 						const queryParameterName = argumentExpression.getLiteralText();
 						const paramType = footprintOfType({
-							file: node.getSourceFile(),
 							type: typeChecker.getTypeAtLocation(node),
 							node: node,
+							typeChecker: typeChecker,
 						});
 						method.imports ??= new Set();
 						if (paramType.imports) {
@@ -378,68 +298,80 @@ function warnIfResultsNotUsedInResponse(
 	}
 }
 
-function extractCatchThrowDetails(
-	node: Node,
-): { status: string; message: string; type: string } | null {
-	if (Node.isCatchClause(node)) {
-		// log types of all children
-		const throwBlock = node.getFirstChildByKind(SyntaxKind.Block);
-		if (!throwBlock) {
-			return null;
-		}
-		const throwStatement = throwBlock.getFirstChildByKind(
-			SyntaxKind.ThrowStatement,
-		);
-		if (throwStatement) {
-			const callExpression = throwStatement.getFirstChildByKind(
-				SyntaxKind.CallExpression,
-			);
-			if (callExpression && Node.isCallExpression(callExpression)) {
-				const args = callExpression.getArguments();
-				if (
-					args.length >= 2 &&
-					Node.isNumericLiteral(args[0]) &&
-					Node.isTemplateExpression(args[1])
-				) {
-					let type = "unknown";
-					const catchClause = node as CatchClause;
-					const errorVariableDeclaration = catchClause.getVariableDeclaration();
-					if (errorVariableDeclaration) {
-						const errorVariableType = errorVariableDeclaration.getType();
-						if (errorVariableType) {
-							type = errorVariableType.getText();
-						}
-					}
-					return {
-						status: args[0].getText(),
-						message: args[1].getText().replace("${e}", type),
-						type,
-					};
-				}
-			}
-		}
-	}
+// biome-ignore lint/suspicious/noExplicitAny: This is a generic function
+function extractErrorDetails(node: Node): ErrorDetails<any> | null {
 	if (Node.isThrowStatement(node)) {
-		const callExpression = node.getFirstChildByKind(SyntaxKind.CallExpression);
-		if (callExpression && Node.isCallExpression(callExpression)) {
-			const args = callExpression.getArguments();
-			if (
-				args.length >= 2 &&
-				Node.isNumericLiteral(args[0]) &&
-				Node.isStringLiteral(args[1])
-			) {
-				const statusCode = args[0].getText();
-				const message = args[1].getText();
+		return extractFromThrowStatement(node);
+	}
+	if (Node.isCatchClause(node)) {
+		return extractFromCatchClause(node);
+	}
+	if (Node.isCallExpression(node)) {
+		return extractFromCallExpression(node);
+	}
+	// console.error(node.getKindName(), node.getText());
+	return null;
+}
 
-				return {
-					status: statusCode,
-					message,
-					type: "unknown",
-				};
-			}
+function extractFromThrowStatement(
+	node: ThrowStatement,
+	// biome-ignore lint/suspicious/noExplicitAny: This is a generic function
+): ErrorDetails<any> | null {
+	const expression = node.getExpression();
+	if (Node.isNewExpression(expression)) {
+		const args = expression.getArguments();
+		if (
+			args.length >= 2 &&
+			Node.isNumericLiteral(args[0]) &&
+			Node.isStringLiteral(args[1])
+		) {
+			return {
+				status: Number(args[0].getLiteralValue()),
+				node: args[1],
+			};
 		}
 	}
+	return null;
+}
 
+function extractFromCatchClause(node: CatchClause): ErrorDetails | null {
+	const throwStatement = node
+		.getBlock()
+		.getFirstDescendantByKind(SyntaxKind.ThrowStatement);
+	if (throwStatement) {
+		const result = extractFromThrowStatement(throwStatement);
+		if (result) {
+			const variableDeclaration = node.getVariableDeclaration();
+			if (variableDeclaration) {
+				result.node = variableDeclaration;
+			}
+			return result;
+		}
+	}
+	return null;
+}
+
+function extractFromCallExpression(
+	node: CallExpression,
+	// biome-ignore lint/suspicious/noExplicitAny: This is a generic function
+): ErrorDetails<any> | null {
+	if (framework === "sveltekit" && node.getText().includes("error(")) {
+		return extract_kit_error(node);
+	}
+	const expression = node.getExpression();
+	if (Node.isIdentifier(expression) && expression.getText() === "error") {
+		const args = node.getArguments();
+		if (
+			args.length >= 2 &&
+			Node.isNumericLiteral(args[0]) &&
+			Node.isStringLiteral(args[1])
+		) {
+			return {
+				status: Number(args[0].getLiteralValue()),
+				node: args[1],
+			};
+		}
+	}
 	return null;
 }
 
@@ -504,21 +436,20 @@ function processFunctionDeclaration(
 		color: "yellow",
 		indent: 5,
 	}).start();
-	const file = declaration.getSourceFile();
-	const methodType = declaration.getName() as HTTP_METHOD;
-
-	const filePath = file.getFilePath();
-	const apiPath = processFilePath(filePath);
+	const http_method = declaration.getName() as HTTP_METHOD;
+	const file_path = declaration.getSourceFile().getFilePath();
+	const api_path = file_path_to_endpoint_url(file_path);
 
 	const endpoint =
-		endpoints.get(apiPath) ||
-		(endpoints.set(apiPath, new Map()).get(apiPath) as MethodMap);
+		endpoints.get(api_path) ||
+		// biome-ignore lint/style/noNonNullAssertion: This will always be truthy
+		endpoints.set(api_path, new Map()).get(api_path)!;
 
-	spinner.text = ` | ${methodType}`;
+	spinner.text = ` | ${http_method}`;
 
-	const allDeclarations = getAllDeclarations(declaration);
+	const endpoint_declarations = getAllDeclarations(declaration);
 	// log all declaration names
-	if (!allDeclarations?.length) {
+	if (!endpoint_declarations?.length) {
 		spinner.fail("No declarations found");
 		return;
 	}
@@ -527,20 +458,28 @@ function processFunctionDeclaration(
 		extractRootDirTypes(declaration, spinner);
 	}
 
-	const payloadNode = extractPayloadTypeNode(allDeclarations);
+	const payloadNode = extractPayloadTypeNode(endpoint_declarations);
 	if (!payloadNode) {
 		spinner.warn(
-			`No request body declaration found for ${methodType} method in ${filePath}`,
+			`No request body declaration found for ${http_method} method in ${file_path}`,
 		);
 	}
 	const jsdoc = extractJSDoc(declaration);
 
 	const method =
-		endpoint.get(methodType) ||
-		(endpoint.set(methodType, {}).get(methodType) as EndpointDefinition);
+		endpoint.get(http_method) ||
+		(endpoint
+			.set(http_method, {
+				imports: new Set(),
+				responses: {},
+				errors: {},
+				docs: "",
+				parameters: {},
+			})
+			.get(http_method) as EndpointDefinition);
 
 	method.parameters = {
-		path: extractPathParams(apiPath),
+		path: extractPathParams(api_path),
 		query: extractQueryParameters(declaration, method, typeChecker),
 		body: payloadNode ? processTypeNode(payloadNode) : undefined,
 	};
@@ -548,30 +487,49 @@ function processFunctionDeclaration(
 		? commentParser.stringify(jsdoc[0][0])
 		: undefined;
 
-	extractEndpointResponses(allDeclarations, method);
+	const responses = extractEndpointResponses(endpoint_declarations);
+	for (const [status, response] of responses) {
+		if (!isStatusOk(status)) {
+			if (!method.errors[status]) {
+				method.errors[status] = [];
+			}
+			method.errors[status].push(response);
+		} else {
+			if (!method.responses[status]) {
+				method.responses[status] = [];
+			}
+			method.responses[status].push(response);
+		}
+	}
 
 	if (!method.responses) {
 		spinner.warn(
-			`No response body found for ${methodType} method in ${filePath}, (Declare this using const results = {...}, new Response(...), or json(...))`,
+			`No response body found for ${http_method} method in ${file_path}, (Declare this using const results = {...}, new Response(...), or json(...))`,
 		);
 	}
 
-	if (["POST", "PUT", "PATCH"].includes(methodType) && !payloadNode) {
+	if (["POST", "PUT", "PATCH"].includes(http_method) && !payloadNode) {
 		spinner.warn(
-			`No payload declaration found for ${methodType} method in ${filePath}, (Declare this using const payload = {...} as TYPE`,
+			`No payload declaration found for ${http_method} method in ${file_path}, (Declare this using const payload = {...} as TYPE`,
 		);
 	}
 }
 
 // Helper functions
 
-function processFilePath(filePath: string): string {
-	return filePath
-		.replace(workingDir, "")
-		.replace("/src/routes", "")
-		.replace("/+server.ts", "")
-		.replace("/", "")
-		.replace(/\[([^\]]+)\]/g, ":$1");
+function file_path_to_endpoint_url(filePath: string): string {
+	return (
+		filePath
+			.split(process.cwd())
+			.at(-1)
+			?.split("routes")
+			.at(-1)
+			?.split("/")
+			.slice(0, -1)
+			// path param to :param
+			.map((segment) => segment.replace(/\[([^\]]+)\]/g, ":$1"))
+			.join("/") as string
+	);
 }
 
 function getAllDeclarations(
@@ -596,13 +554,14 @@ function extractJSDoc(declaration: FunctionDeclaration | VariableDeclaration) {
 		);
 }
 
+function isStatusOk(status: number) {
+	return status >= 200 && status < 300;
+}
+
 function extractEndpointResponses(
 	allDeclarations: Node[],
-	method: EndpointDefinition,
-) {
-	if (!method.responses) {
-		method.responses = {};
-	}
+): [number, FormattedType][] {
+	const responses: [number, FormattedType][] = [];
 
 	const spinner = ora({
 		color: "yellow",
@@ -611,21 +570,24 @@ function extractEndpointResponses(
 
 	for (const node of allDeclarations) {
 		if (Node.isReturnStatement(node)) {
+			const expression = node.getExpression();
+			if (expression) {
+				const error_node = extractErrorDetails(node);
+				if (error_node) {
+					responses.push([error_node.status, processTypeNode(error_node.node)]);
+					continue;
+				}
+			}
 			const result = processReturnStatement(node, spinner);
 			if (result?.resultsDeclaration) {
-				method.responses[result.status] ??= [];
-				// biome-ignore lint/style/noNonNullAssertion: <explanation>
-				method.responses[result.status]!.push(
+				responses.push([
+					result.status,
 					processTypeNode(result?.resultsDeclaration),
-				);
+				]);
 			} else {
 				spinner.fail(
 					`Unhandled return statement
-              ▸ file:  ${node
-								.getSourceFile()
-								.getFilePath()}:${node.getStartLineNumber()}
-              ▸ type: ${node?.getKindName()}
-              ▸ please report this to the developer, ${node.getText()}`,
+	${log_node_with_location(node)}`,
 				);
 			}
 		} else if (
@@ -639,14 +601,15 @@ function extractEndpointResponses(
 						node,
 					)}, of type ${node?.getKindName()}`,
 				);
-				return;
+				continue;
 			}
 
 			const result = processResultsNode(initializer, spinner);
 			if (result?.resultsDeclaration) {
-				method.responses[200] ??= [];
-				// biome-ignore lint/style/noNonNullAssertion: <explanation>
-				method.responses[200]!.push(processTypeNode(result.resultsDeclaration));
+				responses.push([
+					result.status,
+					processTypeNode(result.resultsDeclaration),
+				]);
 			} else {
 				spinner.fail(
 					`Unhandled (results =) statement, please report this to the developer, ${node_text_snippet(
@@ -655,9 +618,20 @@ function extractEndpointResponses(
 				);
 			}
 		}
-
-		processThrowDetails(node, method);
+		const error_node = extractErrorDetails(node);
+		if (error_node) {
+			responses.push([
+				error_node.status,
+				error_node.type_string
+					? {
+							typeString: error_node.type_string,
+						}
+					: processTypeNode(error_node.node),
+			]);
+		}
 	}
+
+	return responses;
 }
 
 function node_text_snippet(node: Node) {
@@ -677,6 +651,9 @@ function processResultsNode(expression: Expression, spinner: Ora) {
 			resultsDeclaration: processReturnIdentifier(expression),
 		};
 	}
+	if (Node.isAsExpression(expression)) {
+		return processResultsNode(expression.getExpression(), spinner);
+	}
 }
 
 function processReturnStatement(node: ReturnStatement, spinner: Ora) {
@@ -688,42 +665,34 @@ function processReturnStatement(node: ReturnStatement, spinner: Ora) {
 		return null;
 	}
 
-	if (
-		!node.getText().includes("json") &&
-		!node.getText().includes("Response")
-	) {
-		spinner.warn(
-			`Detected return statement (${node_text_snippet(
-				expression,
-			)}) without json() or new Response() constructor, Skipping...`,
-		);
-		return null;
-	}
 	const result = processResultsNode(expression, spinner);
 	if (!result) {
 		spinner.warn(
-			`Unhandled return statement with type (${expression.getKindName()}), in ${node
-				.getSourceFile()
-				.getFilePath()}\n\t\tplease report this to the developer\n\t------\n\t\t${node.getText()}\n\t\t------\n`,
+			`Unhandled return statement with type (${expression.getKindName()})
+			in ${node.getSourceFile().getFilePath()}
+
+				${ansiColors.yellow(`------
+				${node.getText()}
+				------`)}
+				`,
 		);
 		return null;
 	}
 	return result;
 }
 
-function processThrowDetails(node: Node, method: EndpointDefinition) {
+function processThrowDetails(node: Node) {
+	const responses: [number, FormattedType][] = [];
 	const throwDetails = extractCatchThrowDetails(node);
 	if (throwDetails) {
-		if (!method.errors) {
-			method.errors = {};
-		}
-		if (!method.errors[throwDetails.status]) {
-			method.errors[throwDetails.status] = [];
-		}
-		method.errors[throwDetails.status].push({
-			message: throwDetails.message,
-		});
+		responses.push([
+			throwDetails.status,
+			{
+				typeString: throwDetails.message,
+			},
+		]);
 	}
+	return responses;
 }
 
 function processReturnVariable(node: VariableDeclaration) {
@@ -771,9 +740,9 @@ function processFailExpression(
 	// process fail(401, {...body}), first argument is the status code, second is the body
 	const args = expression.getArguments();
 	if (args.length > 0) {
-		const arg = args.find((arg) => arg.getKind() == SyntaxKind.NumericLiteral);
+		const arg = args.find((arg) => NumericLiteral.isNumericLiteral(arg));
 		if (arg) {
-			status = parseInt(arg.getText());
+			status = Number.parseInt(arg.getText());
 		}
 	}
 	if (args.length > 1) {
@@ -801,19 +770,47 @@ function processReturnExpression(
 	status: number;
 	resultsDeclaration?: Identifier | ObjectLiteralExpression | Node;
 } {
-	const result: {
+	let result: {
 		status: number;
 		resultsDeclaration?: Identifier | ObjectLiteralExpression | Node;
 	} = {
 		status: 200,
 		resultsDeclaration: undefined,
 	};
-	spinner.info(
-		`Detected return statement ▸ ${ansiColors.green(expression.getKindName())}`,
-	);
+	// spinner.info(
+	// 	`Detected return statement ▸ ${ansiColors.green(expression.getKindName())},
+	// 	Direct Children of the return statement: ${expression
+	// 		.getChildren()
+	// 		.map((child) => child.getKindName())
+	// 		.join(",\n")}`,
+	// );
+
 	expression.getArguments().forEach((arg, i) => {
 		if (i === 0) {
-			if (Identifier.isIdentifier(arg)) {
+			if (SyntaxList.isSyntaxList(arg)) {
+				// get first identifier
+				const firstIdentifier = arg.getChildren()[0] as Identifier;
+				// console.error(firstIdentifier.getKindName());
+				if (firstIdentifier) {
+					result.resultsDeclaration = processReturnIdentifier(firstIdentifier);
+				}
+			} else if (AsExpression.isAsExpression(arg)) {
+				const expression = arg.getExpression();
+				if (expression) {
+					return processResultsNode(expression, spinner);
+				}
+			} else if (PropertyAccessExpression.isPropertyAccessExpression(arg)) {
+				const inner_expression = arg.getExpression();
+				if (inner_expression) {
+					return processResultsNode(inner_expression, spinner);
+				}
+				result = processReturnExpression(arg, spinner);
+			} else if (
+				CallExpression.isCallExpression(arg) ||
+				NewExpression.isNewExpression(arg)
+			) {
+				return processReturnExpression(arg, spinner);
+			} else if (Identifier.isIdentifier(arg)) {
 				result.resultsDeclaration = processReturnIdentifier(arg);
 			} else if (
 				Node.isLiteralExpression(arg) ||
@@ -828,24 +825,24 @@ function processReturnExpression(
 						arg,
 					)}`,
 				);
+			} else {
+				spinner.warn(
+					`Unhandled return statement with type (${arg.getKindName()}), in ${arg
+						.getSourceFile()
+						.getFilePath()}\n\t\tplease report this to the developer\n\t------\n\t\t${node.getText()}\n\t\t------\n`,
+				);
 			}
-			// handle asKind expression
-			else if (Node.isAsExpression(arg)) {
-				const expression = arg.getExpression();
-				if (expression) {
-					result.resultsDeclaration = expression;
-				}
-			}
-		} else if (
-			!result.resultsDeclaration &&
-			ObjectLiteralExpression.isObjectLiteralExpression(arg)
-		) {
+		} else if (ObjectLiteralExpression.isObjectLiteralExpression(arg)) {
 			const properties = arg.getProperties();
+
 			for (const property of properties) {
+				// console.error(property.getText());
 				if (PropertyAssignment.isPropertyAssignment(property)) {
-					const initializer = property.getInitializer();
-					if (initializer?.getText().includes("status")) {
-						result.status = parseInt(initializer.getText());
+					if (property.getName() === "status") {
+						const initializer = property.getInitializer();
+						if (initializer) {
+							result.status = Number.parseInt(initializer.getText());
+						}
 					}
 					break;
 				}
@@ -1201,9 +1198,9 @@ async function process_file_declarations(
 	})
 		.start()
 		.info(
-			`${ansiColors.bgGreen(declarationName)} | ${absolute_to_relative(
-				file.getFilePath(),
-			)}:${declaration.getStartLineNumber()}`,
+			`${ansiColors.bgGreen(declarationName)} | ${node_location_and_line(
+				declaration,
+			)}`,
 		);
 
 	if (["GET", "POST", "PUT", "PATCH", "DELETE"].includes(declarationName)) {
@@ -1231,7 +1228,7 @@ async function generateApiTypes() {
 	let output = "";
 
 	// Create a type for each HTTP method
-	const methodTypes: Record<HTTP_METHOD, string> = {
+	const methodTypes: Partial<Record<HTTP_METHOD, string>> = {
 		GET: "",
 		POST: "",
 		PUT: "",
@@ -1295,9 +1292,22 @@ async function generateApiTypes() {
 			}
 
 			if (endpointDef.errors && Object.keys(endpointDef.errors).length > 0) {
-				methodTypes[method] += `    errors: ${generateErrorsType(
-					endpointDef.errors,
-				)};\n`;
+				10;
+				methodTypes[method] += "    errors: {\n";
+				for (const [status, responses] of Object.entries(endpointDef.errors)) {
+					methodTypes[method] += `      ${status}: `;
+					for (const response of responses) {
+						if (response.imports) {
+							for (const imp of response.imports) {
+								imports.add(imp);
+							}
+						}
+					}
+					methodTypes[method] += `${Array.from(responses.values())
+						.map((response) => response.typeString)
+						.join(" | ")};\n`;
+				}
+				methodTypes[method] += "};\n";
 			} else {
 				methodTypes[method] += "    errors?: never;\n";
 			}
@@ -1388,7 +1398,9 @@ const generateResponsesType = (
 	return `{\n${responseTypes.join(";\n")}\n  }`;
 };
 
-const generateErrorsType = (errors: Record<string, any[]>): string => {
+const generateErrorsType = (
+	errors: Record<string, FormattedType[]>,
+): string => {
 	return objectToUnquotedString(errors);
 };
 

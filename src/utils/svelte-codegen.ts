@@ -29,7 +29,6 @@ const PRIMITIVE_TYPES = new Set([
 type FormatFlags = "remove-undefined-from-intersections" | false;
 
 interface FootprintParams {
-	file: SourceFile;
 	type: Type;
 	node: Node;
 	overrides?: Record<string, string>;
@@ -120,7 +119,6 @@ function handlePromiseType(
 }
 
 export function footprintOfType({
-	file,
 	type,
 	node,
 	overrides = {},
@@ -130,6 +128,7 @@ export function footprintOfType({
 }: FootprintParams): FormattedType {
 	// Check if we've already processed this type
 	if (processedTypes.has(type)) {
+		// biome-ignore lint/style/noNonNullAssertion: <explanation>
 		return processedTypes.get(type)!;
 	}
 
@@ -174,7 +173,6 @@ export function footprintOfType({
 
 	const next = (nextType: Type, nextFlags: FormatFlags[] = []): FormattedType =>
 		footprintOfType({
-			file,
 			type: nextType,
 			node,
 			overrides,
@@ -201,8 +199,7 @@ export function footprintOfType({
 		try {
 			result = formatObject(type, node, next);
 		} catch (e) {
-			// console.error((e as Error).message);
-			result = getTypeImport(type, file);
+			result = getTypeImport(type, node.getSourceFile());
 		}
 	} else if (type.isUnion()) {
 		result = formatUnion(type, flags, next);
@@ -211,11 +208,11 @@ export function footprintOfType({
 			result = formatIntersection(type, node, flags, next);
 		} catch (e) {
 			// console.error((e as Error).message);
-			result = getTypeImport(type, file);
+			result = getTypeImport(type, node.getSourceFile());
 		}
 	} else {
 		console.log("type import", type.getText());
-		const importInfo = getTypeImport(type, file);
+		const importInfo = getTypeImport(type, node.getSourceFile());
 
 		if (importInfo) {
 			result = importInfo;

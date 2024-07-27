@@ -67,8 +67,14 @@
       options.body = JSON.stringify(body);
     }
 
+    const svetch = new Svetch({
+      baseUrl: "/api",
+      fetch: fetch,
+      validate: true,
+    });
+
     try {
-      const { data, error, statusText } = await SvelteClient.request(
+      const { data, error, statusText } = await svetch.request(
         endpoint,
         method,
         {
@@ -102,13 +108,19 @@
   }
 
   async function loadSchema() {
-    schema = await fetch("/apiSchema.json").then((res) => {
-      if (res.ok) {
-        return res.json();
-      } else {
-        throw new Error("Failed to load schema");
-      }
-    });
+    const schemas = await Promise.all(["GET", "POST", "PUT", "PATCH", "DELETE"].map(async (method) => {
+      return await fetch(`/api/schemas/${method}.json`).then((res) => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw new Error("Failed to load schema");
+        }
+      });
+    }));
+    // combine all objects each entries into one {...GET, ...POST, ...PUT, ...PATCH, ...DELETE}
+    schema = schemas.reduce((acc, schema) => {
+      return Object.assign(acc, schema);
+    }, {});
   }
 
   onMount(async () => {
