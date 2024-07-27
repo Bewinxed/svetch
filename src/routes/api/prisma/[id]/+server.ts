@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { json } from "stream/consumers";
 export const POST = async ({ request }) => {
 	const payload = {} as Prisma.UserCreateInput;
 

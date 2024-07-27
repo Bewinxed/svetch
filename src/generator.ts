@@ -4,14 +4,10 @@ import * as os from "node:os";
 import * as path from "node:path";
 
 import {
-	AsExpression,
-	CallExpression,
-	type CallLikeExpression,
+	type CallExpression,
 	type CatchClause,
-	type ExportedDeclarations,
-	type Expression,
 	FunctionDeclaration,
-	Identifier,
+	type Identifier,
 	type ImportDeclaration,
 	NewExpression,
 	Node,
@@ -20,18 +16,16 @@ import {
 	Project,
 	PropertyAccessExpression,
 	PropertyAssignment,
-	type ReturnStatement,
 	type SourceFile,
+	StringLiteral,
 	SyntaxKind,
-	SyntaxList,
-	ThrowStatement,
-	type ts,
+	type ThrowStatement,
 	type TypeAliasDeclaration,
 	type TypeChecker,
 	type TypeNode,
 	type TypeReferenceNode,
 	type VariableDeclaration,
-	type VariableStatement,
+	type VariableStatement
 } from "ts-morph";
 import * as TJS from "typescript-json-schema";
 import type {
@@ -43,9 +37,10 @@ import type {
 } from "./types/core.js";
 
 import ansiColors from "ansi-colors";
+import { parseSchema } from "json-schema-to-zod";
 import { fileURLToPath } from "node:url";
 import ora, { type Ora } from "ora";
-import { footprintOfType } from "./utils/svelte-codegen.js";
+import { extract_kit_error } from "./routes/parsers/sveltekit/responses.js";
 import type { Telemetry } from "./types/telemetry.js";
 import { extractPayloadTypeNode } from "./utils/endpoint_extractors.js";
 import {
@@ -53,8 +48,7 @@ import {
 	log_node_with_location,
 	node_location_and_line,
 } from "./utils/logger.js";
-import { parseSchema } from "json-schema-to-zod";
-import { extract_kit_error } from "./routes/parsers/sveltekit/responses.js";
+import { footprintOfType } from "./utils/svelte-codegen.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -558,6 +552,68 @@ function isStatusOk(status: number) {
 	return status >= 200 && status < 300;
 }
 
+function extract_results_declaration(
+	node: Node,
+	spinner: Ora,
+): StatementResult | undefined {
+	if (
+		Node.isVariableDeclaration(node) &&
+		(node.getName() === "result" || node.getName() === "results")
+	) {
+		const initializer = node.getInitializer();
+		if (!initializer) {
+			spinner.fail(
+				`Unhandled (results =) statement, please report this to the developer, ${node_text_snippet(
+					node,
+				)}, of type ${node?.getKindName()}`,
+			);
+			return;
+		}
+		return {
+			status: 200,
+			type: processTypeNode(initializer),
+		};
+	}
+}
+
+type StatementResult = {
+	status: number;
+	type: FormattedType;
+};
+
+function extract_return_statement(
+	node: Node,
+	spinner: Ora,
+): StatementResult | undefined {
+	if (Node.isReturnStatement(node)) {
+		const expression = node.getExpression();
+		if (!expression) {
+			spinner.warn(
+				`Detected return statement without expression ${node_text_snippet(node)}`,
+			);
+			return;
+		}
+		const result = process_expression(expression, spinner);
+		if (!result || !result.resultsDeclaration) {
+			spinner.warn(
+				`Unhandled return statement with type (${expression.getKindName()})
+			in ${log_node_with_location(node)}`,
+			);
+			return;
+		}
+		if (result?.resultsDeclaration) {
+			return {
+				status: result.status,
+				type: processTypeNode(result?.resultsDeclaration),
+			};
+		}
+		spinner.fail(
+			`Unhandled return expression
+	${log_node_with_location(node)}`,
+		);
+	}
+}
+
 function extractEndpointResponses(
 	allDeclarations: Node[],
 ): [number, FormattedType][] {
@@ -569,65 +625,26 @@ function extractEndpointResponses(
 	}).start();
 
 	for (const node of allDeclarations) {
-		if (Node.isReturnStatement(node)) {
-			const expression = node.getExpression();
-			if (expression) {
-				const error_node = extractErrorDetails(node);
-				if (error_node) {
-					responses.push([error_node.status, processTypeNode(error_node.node)]);
-					continue;
-				}
-			}
-			const result = processReturnStatement(node, spinner);
-			if (result?.resultsDeclaration) {
-				responses.push([
-					result.status,
-					processTypeNode(result?.resultsDeclaration),
-				]);
-			} else {
-				spinner.fail(
-					`Unhandled return statement
-	${log_node_with_location(node)}`,
-				);
-			}
-		} else if (
-			Node.isVariableDeclaration(node) &&
-			(node.getName() === "result" || node.getName() === "result")
-		) {
-			const initializer = node.getInitializer();
-			if (!initializer) {
-				spinner.fail(
-					`Unhandled (results =) statement, please report this to the developer, ${node_text_snippet(
-						node,
-					)}, of type ${node?.getKindName()}`,
-				);
-				continue;
-			}
-
-			const result = processResultsNode(initializer, spinner);
-			if (result?.resultsDeclaration) {
-				responses.push([
-					result.status,
-					processTypeNode(result.resultsDeclaration),
-				]);
-			} else {
-				spinner.fail(
-					`Unhandled (results =) statement, please report this to the developer, ${node_text_snippet(
-						node,
-					)}, of type ${node?.getKindName()}`,
-				);
-			}
-		}
+		let result: StatementResult | undefined = undefined;
 		const error_node = extractErrorDetails(node);
 		if (error_node) {
-			responses.push([
-				error_node.status,
-				error_node.type_string
-					? {
-							typeString: error_node.type_string,
-						}
-					: processTypeNode(error_node.node),
-			]);
+			if (error_node) {
+				responses.push([
+					error_node.status,
+					error_node.type_string
+						? {
+								typeString: error_node.type_string,
+							}
+						: processTypeNode(error_node.node),
+				]);
+			}
+			continue;
+		}
+		result =
+			extract_results_declaration(node, spinner) ||
+			extract_return_statement(node, spinner);
+		if (result) {
+			responses.push([result.status, result.type]);
 		}
 	}
 
@@ -641,9 +658,17 @@ function node_text_snippet(node: Node) {
 	return text.slice(start, end);
 }
 
-function processResultsNode(expression: Expression, spinner: Ora) {
-	if (Node.isCallExpression(expression) || Node.isNewExpression(expression)) {
-		return processReturnExpression(expression, spinner);
+function process_expression(expression: Node, spinner: Ora) {
+	if (Node.isNewExpression(expression)) {
+		return process_call_expression(expression, spinner);
+	}
+	if (Node.isCallExpression(expression)) {
+		// console.error(
+		// 	`call expression`,
+		// 	expression.getKindName(),
+		// 	expression.getText(),
+		// );
+		return process_call_expression(expression, spinner);
 	}
 	if (Node.isIdentifier(expression)) {
 		return {
@@ -652,33 +677,18 @@ function processResultsNode(expression: Expression, spinner: Ora) {
 		};
 	}
 	if (Node.isAsExpression(expression)) {
-		return processResultsNode(expression.getExpression(), spinner);
+		console.error(`as expression`, expression.getExpression().getKindName());
+		return process_expression(expression.getExpression(), spinner);
 	}
-}
-
-function processReturnStatement(node: ReturnStatement, spinner: Ora) {
-	const expression = node.getExpression();
-	if (!expression) {
-		spinner.warn(
-			`Detected return statement without expression ${node_text_snippet(node)}`,
+	if (Node.isPropertyAccessExpression(expression)) {
+		console.error(
+			`property access expression`,
+			expression.getKindName(),
+			expression.getText(),
 		);
-		return null;
+		return process_expression(expression.getExpression(), spinner);
 	}
-
-	const result = processResultsNode(expression, spinner);
-	if (!result) {
-		spinner.warn(
-			`Unhandled return statement with type (${expression.getKindName()})
-			in ${node.getSourceFile().getFilePath()}
-
-				${ansiColors.yellow(`------
-				${node.getText()}
-				------`)}
-				`,
-		);
-		return null;
-	}
-	return result;
+	console.warn(`unhandled expression`, expression.getKindName());
 }
 
 function processThrowDetails(node: Node) {
@@ -763,8 +773,9 @@ function processFailExpression(
 	return { status, resultsDeclaration };
 }
 
-function processReturnExpression(
-	expression: CallExpression<ts.CallExpression> | NewExpression,
+
+function process_call_expression(
+	expression: CallExpression | NewExpression,
 	spinner: Ora,
 ): {
 	status: number;
@@ -777,78 +788,73 @@ function processReturnExpression(
 		status: 200,
 		resultsDeclaration: undefined,
 	};
-	// spinner.info(
-	// 	`Detected return statement ▸ ${ansiColors.green(expression.getKindName())},
-	// 	Direct Children of the return statement: ${expression
-	// 		.getChildren()
-	// 		.map((child) => child.getKindName())
-	// 		.join(",\n")}`,
-	// );
 
-	expression.getArguments().forEach((arg, i) => {
-		if (i === 0) {
-			if (SyntaxList.isSyntaxList(arg)) {
-				// get first identifier
-				const firstIdentifier = arg.getChildren()[0] as Identifier;
-				// console.error(firstIdentifier.getKindName());
-				if (firstIdentifier) {
-					result.resultsDeclaration = processReturnIdentifier(firstIdentifier);
-				}
-			} else if (AsExpression.isAsExpression(arg)) {
-				const expression = arg.getExpression();
-				if (expression) {
-					return processResultsNode(expression, spinner);
-				}
-			} else if (PropertyAccessExpression.isPropertyAccessExpression(arg)) {
-				const inner_expression = arg.getExpression();
-				if (inner_expression) {
-					return processResultsNode(inner_expression, spinner);
-				}
-				result = processReturnExpression(arg, spinner);
-			} else if (
-				CallExpression.isCallExpression(arg) ||
-				NewExpression.isNewExpression(arg)
+	const args = expression.getArguments();
+
+	if (args.length > 0) {
+		const firstArg = args[0];
+		if (
+			CallExpression.isCallExpression(firstArg) ||
+			NewExpression.isNewExpression(firstArg)
+		) {
+			return process_call_expression(firstArg, spinner);
+		}
+		if (Identifier.isIdentifier(firstArg)) {
+			result.resultsDeclaration = processReturnIdentifier(firstArg);
+		} else if (PropertyAccessExpression.isPropertyAccessExpression(firstArg)) {
+			const subExpression = firstArg.getExpression();
+			// console.error(
+			// 	`Property access expression:`,
+			// 	subExpression.getKindName(),
+			// 	subExpression.getText(),
+			// );
+			if (
+				CallExpression.isCallExpression(subExpression) ||
+				NewExpression.isNewExpression(subExpression)
 			) {
-				return processReturnExpression(arg, spinner);
-			} else if (Identifier.isIdentifier(arg)) {
-				result.resultsDeclaration = processReturnIdentifier(arg);
-			} else if (
-				Node.isLiteralExpression(arg) ||
-				Node.isTemplateExpression(arg)
-			) {
-				result.resultsDeclaration = arg;
-			} else if (ObjectLiteralExpression.isObjectLiteralExpression(arg)) {
-				result.resultsDeclaration = arg;
-			} else if (arg?.getFirstDescendantByKind(SyntaxKind.MethodDeclaration)) {
-				spinner.warn(
-					`Found method declaration, These are unsupported at the moment, but you can report it in github, ${node_text_snippet(
-						arg,
-					)}`,
-				);
-			} else {
-				spinner.warn(
-					`Unhandled return statement with type (${arg.getKindName()}), in ${arg
-						.getSourceFile()
-						.getFilePath()}\n\t\tplease report this to the developer\n\t------\n\t\t${node.getText()}\n\t\t------\n`,
-				);
+				return process_call_expression(subExpression, spinner);
 			}
-		} else if (ObjectLiteralExpression.isObjectLiteralExpression(arg)) {
-			const properties = arg.getProperties();
+		} else if (StringLiteral) {
+			result.resultsDeclaration = firstArg;
+		} else if (NumericLiteral.isNumericLiteral(firstArg)) {
+			result.status = Number.parseInt(firstArg.getText());
+		} else {
+			console.error(
+				"Unhandled first argument type:",
+				firstArg?.getKindName(),
+				firstArg?.getText(),
+			);
+			result.resultsDeclaration = firstArg;
+		}
+	}
 
-			for (const property of properties) {
-				// console.error(property.getText());
-				if (PropertyAssignment.isPropertyAssignment(property)) {
-					if (property.getName() === "status") {
-						const initializer = property.getInitializer();
-						if (initializer) {
-							result.status = Number.parseInt(initializer.getText());
-						}
-					}
-					break;
+	const statusArg = args.find((arg) =>
+		ObjectLiteralExpression.isObjectLiteralExpression(arg),
+	);
+	if (
+		statusArg &&
+		ObjectLiteralExpression.isObjectLiteralExpression(statusArg)
+	) {
+		const statusProperty = statusArg.getProperty("status");
+		if (
+			statusProperty &&
+			PropertyAssignment.isPropertyAssignment(statusProperty)
+		) {
+			const initializer = statusProperty.getInitializer();
+			if (initializer) {
+				const statusValue = Number.parseInt(initializer.getText());
+				if (!Number.isNaN(statusValue)) {
+					result.status = statusValue;
 				}
 			}
 		}
-	});
+	}
+
+	// console.log(
+	// 	"Returning:",
+	// 	result.status,
+	// 	result.resultsDeclaration?.getKindName(),
+	// );
 	return result;
 }
 
@@ -1055,7 +1061,7 @@ function processActionsDeclaration(
 						(expression && Node.isCallExpression(expression)) ||
 						Node.isNewExpression(expression)
 					) {
-						({ status, resultsDeclaration } = processReturnExpression(
+						({ status, resultsDeclaration } = process_call_expression(
 							expression,
 							resultsDeclaration,
 							spinner,
