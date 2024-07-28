@@ -1,0 +1,4467 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/prisma/:id": {
+      "post": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "allOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "posts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "title": {
+                                    "type": "string"
+                                  },
+                                  "content": {
+                                    "type": "string"
+                                  },
+                                  "createdAt": {
+                                    "$ref": "#/definitions/Date"
+                                  },
+                                  "updatedAt": {
+                                    "$ref": "#/definitions/Date"
+                                  },
+                                  "authorId": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "password": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "$ref": "#/definitions/Date"
+                            },
+                            "updatedAt": {
+                              "$ref": "#/definitions/Date"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "uwu": {
+                              "type": "object",
+                              "properties": {
+                                "uwu": {
+                                  "type": "object",
+                                  "properties": {
+                                    "uwu": {
+                                      "type": "object",
+                                      "properties": {
+                                        "uwu": {
+                                          "type": "string",
+                                          "const": "owo"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "allOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "posts": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "title": {
+                                    "type": "string"
+                                  },
+                                  "content": {
+                                    "type": "string"
+                                  },
+                                  "createdAt": {
+                                    "$ref": "#/definitions/Date"
+                                  },
+                                  "updatedAt": {
+                                    "$ref": "#/definitions/Date"
+                                  },
+                                  "authorId": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "email": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            },
+                            "password": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "$ref": "#/definitions/Date"
+                            },
+                            "updatedAt": {
+                              "$ref": "#/definitions/Date"
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "uwu": {
+                              "type": "object",
+                              "properties": {
+                                "uwu": {
+                                  "type": "object",
+                                  "properties": {
+                                    "uwu": {
+                                      "type": "object",
+                                      "properties": {
+                                        "uwu": {
+                                          "type": "string",
+                                          "const": "owo"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/Prisma.UserCreateInput"
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "number",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200 response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/UnExportedType"
+                    },
+                    {
+                      "allOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "author": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "email": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "password": {
+                                  "type": "string"
+                                },
+                                "createdAt": {
+                                  "$ref": "#/definitions/Date"
+                                },
+                                "updatedAt": {
+                                  "$ref": "#/definitions/Date"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "content": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "$ref": "#/definitions/Date"
+                            },
+                            "updatedAt": {
+                              "$ref": "#/definitions/Date"
+                            },
+                            "authorId": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "allOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "author": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "email": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "password": {
+                                    "type": "string"
+                                  },
+                                  "createdAt": {
+                                    "$ref": "#/definitions/Date"
+                                  },
+                                  "updatedAt": {
+                                    "$ref": "#/definitions/Date"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "content": {
+                                "type": "string"
+                              },
+                              "createdAt": {
+                                "$ref": "#/definitions/Date"
+                              },
+                              "updatedAt": {
+                                "$ref": "#/definitions/Date"
+                              },
+                              "authorId": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "owo": {
+                          "type": "string"
+                        },
+                        "id": {}
+                      }
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "content": {
+                            "type": "string"
+                          },
+                          "createdAt": {
+                            "$ref": "#/definitions/Date"
+                          },
+                          "updatedAt": {
+                            "$ref": "#/definitions/Date"
+                          },
+                          "authorId": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    {
+                      "allOf": [
+                        {
+                          "type": "object",
+                          "properties": {
+                            "author": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "email": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string"
+                                },
+                                "password": {
+                                  "type": "string"
+                                },
+                                "createdAt": {
+                                  "$ref": "#/definitions/Date"
+                                },
+                                "updatedAt": {
+                                  "$ref": "#/definitions/Date"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "content": {
+                              "type": "string"
+                            },
+                            "createdAt": {
+                              "$ref": "#/definitions/Date"
+                            },
+                            "updatedAt": {
+                              "$ref": "#/definitions/Date"
+                            },
+                            "authorId": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "const": 500,
+                      "type": "number"
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400 error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "const": "Bad Request"
+                        }
+                      }
+                    },
+                    {
+                      "const": "Not OK",
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500 error response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "const": "Internal Server Error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/definitions/Prisma.UserUpdateInput"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "__type": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "email": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.NullableStringFieldUpdateOperationsInput"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "password": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.DateTimeFieldUpdateOperationsInput"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.DateTimeFieldUpdateOperationsInput"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "posts": {
+            "$ref": "#/definitions/Prisma.PostUpdateManyWithoutAuthorNestedInput"
+          }
+        }
+      },
+      "__type_1": {
+        "type": "object",
+        "properties": {
+          "set": {
+            "type": "string"
+          }
+        }
+      },
+      "Prisma.Without<Prisma.PostCreateWithoutAuthorInput,Prisma.PostUncheckedCreateWithoutAuthorInput>": {
+        "type": "object"
+      },
+      "Prisma.Without<Prisma.PostUncheckedCreateWithoutAuthorInput,Prisma.PostCreateWithoutAuthorInput>": {
+        "type": "object"
+      },
+      "__type_2": {
+        "type": "object",
+        "properties": {
+          "set": {
+            "type": "string"
+          }
+        }
+      },
+      "Prisma.PostWhereUniqueInput": {
+        "anyOf": [
+          {
+            "allOf": [
+              {
+                "$ref": "#/definitions/{id:string;}"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "AND": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.PostWhereInput"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      }
+                    ]
+                  },
+                  "OR": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/Prisma.PostWhereInput"
+                    }
+                  },
+                  "NOT": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.PostWhereInput"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      }
+                    ]
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFilter"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "content": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFilter"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFilter"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFilter"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "authorId": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFilter"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "author": {
+                    "$ref": "#/definitions/Prisma.XOR"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "#/definitions/{id:string;}_1"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "AND": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.PostWhereInput"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      }
+                    ]
+                  },
+                  "OR": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/definitions/Prisma.PostWhereInput"
+                    }
+                  },
+                  "NOT": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.PostWhereInput"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      }
+                    ]
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFilter"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "content": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFilter"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFilter"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFilter"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "authorId": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFilter"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "author": {
+                    "$ref": "#/definitions/Prisma.XOR"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "{id:string;}": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "__type_3": {
+        "type": "object",
+        "properties": {
+          "set": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "Prisma.PostWhereInput": {
+        "$ref": "#/definitions/__type_6"
+      },
+      "__type_4": {
+        "type": "object",
+        "properties": {
+          "create": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/Prisma.Without<Prisma.PostCreateWithoutAuthorInput,Prisma.PostUncheckedCreateWithoutAuthorInput>"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "updatedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/Prisma.Without<Prisma.PostUncheckedCreateWithoutAuthorInput,Prisma.PostCreateWithoutAuthorInput>"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "content": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "updatedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "content": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    "updatedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "date-time"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "connectOrCreate": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.PostCreateOrConnectWithoutAuthorInput"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/__type_5"
+                }
+              }
+            ]
+          },
+          "upsert": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.PostUpsertWithWhereUniqueWithoutAuthorInput"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/__type_19"
+                }
+              }
+            ]
+          },
+          "createMany": {
+            "$ref": "#/definitions/Prisma.PostCreateManyAuthorInputEnvelope"
+          },
+          "set": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/{id:string;}"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "AND": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "OR": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      },
+                      "NOT": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "title": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "content": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "createdAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "updatedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "authorId": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "author": {
+                        "$ref": "#/definitions/Prisma.XOR"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/{id:string;}_1"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "AND": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "OR": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      },
+                      "NOT": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "title": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "content": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "createdAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "updatedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "authorId": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "author": {
+                        "$ref": "#/definitions/Prisma.XOR"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.PostWhereUniqueInput"
+                }
+              }
+            ]
+          },
+          "disconnect": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/{id:string;}"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "AND": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "OR": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      },
+                      "NOT": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "title": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "content": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "createdAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "updatedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "authorId": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "author": {
+                        "$ref": "#/definitions/Prisma.XOR"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/{id:string;}_1"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "AND": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "OR": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      },
+                      "NOT": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "title": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "content": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "createdAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "updatedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "authorId": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "author": {
+                        "$ref": "#/definitions/Prisma.XOR"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.PostWhereUniqueInput"
+                }
+              }
+            ]
+          },
+          "delete": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/{id:string;}"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "AND": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "OR": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      },
+                      "NOT": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "title": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "content": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "createdAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "updatedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "authorId": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "author": {
+                        "$ref": "#/definitions/Prisma.XOR"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/{id:string;}_1"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "AND": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "OR": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      },
+                      "NOT": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "title": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "content": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "createdAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "updatedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "authorId": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "author": {
+                        "$ref": "#/definitions/Prisma.XOR"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.PostWhereUniqueInput"
+                }
+              }
+            ]
+          },
+          "connect": {
+            "anyOf": [
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/{id:string;}"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "AND": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "OR": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      },
+                      "NOT": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "title": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "content": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "createdAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "updatedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "authorId": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "author": {
+                        "$ref": "#/definitions/Prisma.XOR"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "allOf": [
+                  {
+                    "$ref": "#/definitions/{id:string;}_1"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "AND": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "OR": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/definitions/Prisma.PostWhereInput"
+                        }
+                      },
+                      "NOT": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.PostWhereInput"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/definitions/Prisma.PostWhereInput"
+                            }
+                          }
+                        ]
+                      },
+                      "title": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "content": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "createdAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "updatedAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time"
+                          },
+                          {
+                            "$ref": "#/definitions/Prisma.DateTimeFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "authorId": {
+                        "anyOf": [
+                          {
+                            "$ref": "#/definitions/Prisma.StringFilter"
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      "author": {
+                        "$ref": "#/definitions/Prisma.XOR"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.PostWhereUniqueInput"
+                }
+              }
+            ]
+          },
+          "update": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.PostUpdateWithWhereUniqueWithoutAuthorInput"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/__type_22"
+                }
+              }
+            ]
+          },
+          "updateMany": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.PostUpdateManyWithWhereWithoutAuthorInput"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/__type_23"
+                }
+              }
+            ]
+          },
+          "deleteMany": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.PostScalarWhereInput"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.PostScalarWhereInput"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "FieldRef": {
+        "description": "A reference to a specific field of a specific model",
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "$ref": "#/definitions/FieldRef.Model"
+          },
+          "name": {
+            "type": "string"
+          },
+          "typeName": {
+            "$ref": "#/definitions/FieldRef.FieldType"
+          },
+          "isList": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FieldRef.Model": {
+        "type": "string",
+        "const": "Post"
+      },
+      "FieldRef.FieldType": {
+        "type": "string",
+        "const": "String"
+      },
+      "Prisma.FieldRef": {
+        "$ref": "#/definitions/FieldRef",
+        "description": "A reference to a specific field of a specific model"
+      },
+      "FieldRef_1": {
+        "description": "A reference to a specific field of a specific model",
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "$ref": "#/definitions/FieldRef.Model"
+          },
+          "name": {
+            "type": "string"
+          },
+          "typeName": {
+            "$ref": "#/definitions/FieldRef.FieldType_1"
+          },
+          "isList": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FieldRef.FieldType_1": {
+        "type": "string",
+        "const": "String[]"
+      },
+      "Prisma.FieldRef_1": {
+        "$ref": "#/definitions/FieldRef_1",
+        "description": "A reference to a specific field of a specific model"
+      },
+      "Prisma.QueryMode": {
+        "enum": [
+          "default",
+          "insensitive"
+        ],
+        "type": "string"
+      },
+      "__type_5": {
+        "type": "object",
+        "properties": {
+          "where": {
+            "$ref": "#/definitions/Prisma.PostWhereUniqueInput"
+          },
+          "create": {
+            "$ref": "#/definitions/Prisma.XOR_1"
+          }
+        }
+      },
+      "Prisma.NestedStringFilter": {
+        "$ref": "#/definitions/__type_8"
+      },
+      "Prisma.StringFilter": {
+        "$ref": "#/definitions/__type_7"
+      },
+      "__type_6": {
+        "type": "object",
+        "properties": {
+          "AND": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.PostWhereInput"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.PostWhereInput"
+                }
+              }
+            ]
+          },
+          "OR": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Prisma.PostWhereInput"
+            }
+          },
+          "NOT": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.PostWhereInput"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.PostWhereInput"
+                }
+              }
+            ]
+          },
+          "id": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "title": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.DateTimeFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.DateTimeFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "authorId": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "author": {
+            "$ref": "#/definitions/Prisma.XOR"
+          }
+        }
+      },
+      "FieldRef_2": {
+        "description": "A reference to a specific field of a specific model",
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "$ref": "#/definitions/FieldRef.Model"
+          },
+          "name": {
+            "type": "string"
+          },
+          "typeName": {
+            "$ref": "#/definitions/FieldRef.FieldType_2"
+          },
+          "isList": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FieldRef.FieldType_2": {
+        "type": "string",
+        "const": "DateTime"
+      },
+      "Prisma.FieldRef_2": {
+        "$ref": "#/definitions/FieldRef_2",
+        "description": "A reference to a specific field of a specific model"
+      },
+      "FieldRef_3": {
+        "description": "A reference to a specific field of a specific model",
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "$ref": "#/definitions/FieldRef.Model"
+          },
+          "name": {
+            "type": "string"
+          },
+          "typeName": {
+            "$ref": "#/definitions/FieldRef.FieldType_3"
+          },
+          "isList": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FieldRef.FieldType_3": {
+        "type": "string",
+        "const": "DateTime[]"
+      },
+      "Prisma.FieldRef_3": {
+        "$ref": "#/definitions/FieldRef_3",
+        "description": "A reference to a specific field of a specific model"
+      },
+      "__type_7": {
+        "type": "object",
+        "properties": {
+          "equals": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "in": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_1"
+              }
+            ]
+          },
+          "notIn": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_1"
+              }
+            ]
+          },
+          "lt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "lte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "contains": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "startsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "endsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "mode": {
+            "$ref": "#/definitions/Prisma.QueryMode"
+          },
+          "not": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.NestedStringFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "Prisma.NestedDateTimeFilter": {
+        "$ref": "#/definitions/__type_10"
+      },
+      "Prisma.DateTimeFilter": {
+        "$ref": "#/definitions/__type_9"
+      },
+      "Prisma.XOR": {
+        "description": "XOR is needed to have a real mutually exclusive union type\nhttps://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types",
+        "anyOf": [
+          {
+            "allOf": [
+              {
+                "$ref": "#/definitions/Prisma.Without<Prisma.UserRelationFilter,Prisma.UserWhereInput>"
+              },
+              {
+                "$ref": "#/definitions/Prisma.UserWhereInput",
+                "description": "Deep Input Types"
+              }
+            ]
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "#/definitions/Prisma.Without<Prisma.UserWhereInput,Prisma.UserRelationFilter>"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "is": {
+                    "$ref": "#/definitions/Prisma.UserWhereInput"
+                  },
+                  "isNot": {
+                    "$ref": "#/definitions/Prisma.UserWhereInput"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "Prisma.Without<Prisma.UserRelationFilter,Prisma.UserWhereInput>": {
+        "type": "object"
+      },
+      "__type_8": {
+        "type": "object",
+        "properties": {
+          "equals": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "in": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_1"
+              }
+            ]
+          },
+          "notIn": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_1"
+              }
+            ]
+          },
+          "lt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "lte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "contains": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "startsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "endsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "not": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.NestedStringFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "Prisma.UserWhereInput": {
+        "$ref": "#/definitions/__type_11"
+      },
+      "__type_9": {
+        "type": "object",
+        "properties": {
+          "equals": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_2"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "in": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_3"
+              }
+            ]
+          },
+          "notIn": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_3"
+              }
+            ]
+          },
+          "lt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_2"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "lte": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_2"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_2"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gte": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_2"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "not": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.NestedDateTimeFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "FieldRef_4": {
+        "description": "A reference to a specific field of a specific model",
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "$ref": "#/definitions/FieldRef.Model_1"
+          },
+          "name": {
+            "type": "string"
+          },
+          "typeName": {
+            "$ref": "#/definitions/FieldRef.FieldType"
+          },
+          "isList": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FieldRef.Model_1": {
+        "type": "string",
+        "const": "User"
+      },
+      "Prisma.FieldRef_4": {
+        "$ref": "#/definitions/FieldRef_4",
+        "description": "A reference to a specific field of a specific model"
+      },
+      "FieldRef_5": {
+        "description": "A reference to a specific field of a specific model",
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "$ref": "#/definitions/FieldRef.Model_1"
+          },
+          "name": {
+            "type": "string"
+          },
+          "typeName": {
+            "$ref": "#/definitions/FieldRef.FieldType_1"
+          },
+          "isList": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Prisma.FieldRef_5": {
+        "$ref": "#/definitions/FieldRef_5",
+        "description": "A reference to a specific field of a specific model"
+      },
+      "__type_10": {
+        "type": "object",
+        "properties": {
+          "equals": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_2"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "in": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_3"
+              }
+            ]
+          },
+          "notIn": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_3"
+              }
+            ]
+          },
+          "lt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_2"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "lte": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_2"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_2"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gte": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_2"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "not": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.NestedDateTimeFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "Prisma.NestedStringFilter_1": {
+        "$ref": "#/definitions/__type_13"
+      },
+      "Prisma.StringFilter_1": {
+        "$ref": "#/definitions/__type_12"
+      },
+      "__type_11": {
+        "description": "Deep Input Types",
+        "type": "object",
+        "properties": {
+          "AND": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.UserWhereInput",
+                "description": "Deep Input Types"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.UserWhereInput"
+                }
+              }
+            ]
+          },
+          "OR": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Prisma.UserWhereInput"
+            }
+          },
+          "NOT": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.UserWhereInput",
+                "description": "Deep Input Types"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.UserWhereInput"
+                }
+              }
+            ]
+          },
+          "id": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter_1"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "email": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter_1"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "name": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringNullableFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "password": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter_1"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.DateTimeFilter_1"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.DateTimeFilter_1"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "posts": {
+            "$ref": "#/definitions/Prisma.PostListRelationFilter"
+          }
+        }
+      },
+      "__type_12": {
+        "type": "object",
+        "properties": {
+          "equals": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "in": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_5"
+              }
+            ]
+          },
+          "notIn": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_5"
+              }
+            ]
+          },
+          "lt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "lte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "contains": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "startsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "endsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "mode": {
+            "$ref": "#/definitions/Prisma.QueryMode"
+          },
+          "not": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.NestedStringFilter_1"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "Prisma.NestedStringNullableFilter": {
+        "$ref": "#/definitions/__type_15"
+      },
+      "Prisma.StringNullableFilter": {
+        "$ref": "#/definitions/__type_14"
+      },
+      "__type_13": {
+        "type": "object",
+        "properties": {
+          "equals": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "in": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_5"
+              }
+            ]
+          },
+          "notIn": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_5"
+              }
+            ]
+          },
+          "lt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "lte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "contains": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "startsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "endsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "not": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.NestedStringFilter_1"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "FieldRef_6": {
+        "description": "A reference to a specific field of a specific model",
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "$ref": "#/definitions/FieldRef.Model_1"
+          },
+          "name": {
+            "type": "string"
+          },
+          "typeName": {
+            "$ref": "#/definitions/FieldRef.FieldType_2"
+          },
+          "isList": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Prisma.FieldRef_6": {
+        "$ref": "#/definitions/FieldRef_6",
+        "description": "A reference to a specific field of a specific model"
+      },
+      "FieldRef_7": {
+        "description": "A reference to a specific field of a specific model",
+        "type": "object",
+        "properties": {
+          "modelName": {
+            "$ref": "#/definitions/FieldRef.Model_1"
+          },
+          "name": {
+            "type": "string"
+          },
+          "typeName": {
+            "$ref": "#/definitions/FieldRef.FieldType_3"
+          },
+          "isList": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Prisma.FieldRef_7": {
+        "$ref": "#/definitions/FieldRef_7",
+        "description": "A reference to a specific field of a specific model"
+      },
+      "__type_14": {
+        "type": "object",
+        "properties": {
+          "equals": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "in": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_5"
+              }
+            ]
+          },
+          "notIn": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_5"
+              }
+            ]
+          },
+          "lt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "lte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "contains": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "startsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "endsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "mode": {
+            "$ref": "#/definitions/Prisma.QueryMode"
+          },
+          "not": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.NestedStringNullableFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "Prisma.NestedDateTimeFilter_1": {
+        "$ref": "#/definitions/__type_17"
+      },
+      "Prisma.DateTimeFilter_1": {
+        "$ref": "#/definitions/__type_16"
+      },
+      "__type_15": {
+        "type": "object",
+        "properties": {
+          "equals": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "in": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_5"
+              }
+            ]
+          },
+          "notIn": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_5"
+              }
+            ]
+          },
+          "lt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "lte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gt": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gte": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "contains": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "startsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "endsWith": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_4"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "not": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.NestedStringNullableFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "Prisma.PostListRelationFilter": {
+        "$ref": "#/definitions/__type_18"
+      },
+      "Prisma.Without<Prisma.UserWhereInput,Prisma.UserRelationFilter>": {
+        "type": "object"
+      },
+      "{id:string;}_1": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "Prisma.XOR_1": {
+        "description": "XOR is needed to have a real mutually exclusive union type\nhttps://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types",
+        "anyOf": [
+          {
+            "allOf": [
+              {
+                "$ref": "#/definitions/Prisma.Without<Prisma.PostCreateWithoutAuthorInput,Prisma.PostUncheckedCreateWithoutAuthorInput>"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "#/definitions/Prisma.Without<Prisma.PostUncheckedCreateWithoutAuthorInput,Prisma.PostCreateWithoutAuthorInput>"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "createdAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "Prisma.PostCreateOrConnectWithoutAuthorInput": {
+        "$ref": "#/definitions/__type_5"
+      },
+      "__type_16": {
+        "type": "object",
+        "properties": {
+          "equals": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_6"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "in": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_7"
+              }
+            ]
+          },
+          "notIn": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_7"
+              }
+            ]
+          },
+          "lt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_6"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "lte": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_6"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_6"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gte": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_6"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "not": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.NestedDateTimeFilter_1"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "__type_17": {
+        "type": "object",
+        "properties": {
+          "equals": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_6"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "in": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_7"
+              }
+            ]
+          },
+          "notIn": {
+            "anyOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_7"
+              }
+            ]
+          },
+          "lt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_6"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "lte": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_6"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_6"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "gte": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.FieldRef_6"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "not": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.NestedDateTimeFilter_1"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "Prisma.PostCreateManyAuthorInput": {
+        "$ref": "#/definitions/__type_21"
+      },
+      "Prisma.PostCreateManyAuthorInputEnvelope": {
+        "$ref": "#/definitions/__type_20"
+      },
+      "Prisma.PostCreateNestedManyWithoutAuthorInput": {
+        "$ref": "#/definitions/__type_1"
+      },
+      "Prisma.UserCreateInput": {
+        "$ref": "#/definitions/__type"
+      },
+      "Date": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "Prisma.StringFieldUpdateOperationsInput": {
+        "$ref": "#/definitions/__type_1"
+      },
+      "Prisma.NullableStringFieldUpdateOperationsInput": {
+        "$ref": "#/definitions/__type_2"
+      },
+      "Prisma.DateTimeFieldUpdateOperationsInput": {
+        "$ref": "#/definitions/__type_3"
+      },
+      "__type_18": {
+        "type": "object",
+        "properties": {
+          "every": {
+            "$ref": "#/definitions/Prisma.PostWhereInput"
+          },
+          "some": {
+            "$ref": "#/definitions/Prisma.PostWhereInput"
+          },
+          "none": {
+            "$ref": "#/definitions/Prisma.PostWhereInput"
+          }
+        }
+      },
+      "__type_19": {
+        "type": "object",
+        "properties": {
+          "where": {
+            "$ref": "#/definitions/Prisma.PostWhereUniqueInput"
+          },
+          "update": {
+            "$ref": "#/definitions/Prisma.XOR_2"
+          },
+          "create": {
+            "$ref": "#/definitions/Prisma.XOR_1"
+          }
+        }
+      },
+      "Prisma.XOR_2": {
+        "description": "XOR is needed to have a real mutually exclusive union type\nhttps://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types",
+        "anyOf": [
+          {
+            "allOf": [
+              {
+                "$ref": "#/definitions/Prisma.Without<Prisma.PostUpdateWithoutAuthorInput,Prisma.PostUncheckedUpdateWithoutAuthorInput>"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "content": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "#/definitions/Prisma.Without<Prisma.PostUncheckedUpdateWithoutAuthorInput,Prisma.PostUpdateWithoutAuthorInput>"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "content": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "Prisma.Without<Prisma.PostUpdateWithoutAuthorInput,Prisma.PostUncheckedUpdateWithoutAuthorInput>": {
+        "type": "object"
+      },
+      "Prisma.Without<Prisma.PostUncheckedUpdateWithoutAuthorInput,Prisma.PostUpdateWithoutAuthorInput>": {
+        "type": "object"
+      },
+      "Prisma.PostUpsertWithWhereUniqueWithoutAuthorInput": {
+        "$ref": "#/definitions/__type_19"
+      },
+      "__type_20": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.PostCreateManyAuthorInput"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/__type_21"
+                }
+              }
+            ]
+          },
+          "skipDuplicates": {
+            "type": "boolean"
+          }
+        }
+      },
+      "__type_21": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "__type_22": {
+        "type": "object",
+        "properties": {
+          "where": {
+            "$ref": "#/definitions/Prisma.PostWhereUniqueInput"
+          },
+          "data": {
+            "$ref": "#/definitions/Prisma.XOR_2"
+          }
+        }
+      },
+      "Prisma.PostUpdateWithWhereUniqueWithoutAuthorInput": {
+        "$ref": "#/definitions/__type_22"
+      },
+      "__type_23": {
+        "type": "object",
+        "properties": {
+          "where": {
+            "$ref": "#/definitions/Prisma.PostScalarWhereInput"
+          },
+          "data": {
+            "$ref": "#/definitions/Prisma.XOR_3"
+          }
+        }
+      },
+      "__type_24": {
+        "type": "object",
+        "properties": {
+          "AND": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.PostScalarWhereInput"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.PostScalarWhereInput"
+                }
+              }
+            ]
+          },
+          "OR": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/Prisma.PostScalarWhereInput"
+            }
+          },
+          "NOT": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.PostScalarWhereInput"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/Prisma.PostScalarWhereInput"
+                }
+              }
+            ]
+          },
+          "id": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "title": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "content": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.DateTimeFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "updatedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "$ref": "#/definitions/Prisma.DateTimeFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "authorId": {
+            "anyOf": [
+              {
+                "$ref": "#/definitions/Prisma.StringFilter"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      },
+      "Prisma.PostScalarWhereInput": {
+        "$ref": "#/definitions/__type_24"
+      },
+      "Prisma.XOR_3": {
+        "description": "XOR is needed to have a real mutually exclusive union type\nhttps://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types",
+        "anyOf": [
+          {
+            "allOf": [
+              {
+                "$ref": "#/definitions/Prisma.Without<Prisma.PostUpdateManyMutationInput,Prisma.PostUncheckedUpdateManyWithoutAuthorInput>"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "content": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "allOf": [
+              {
+                "$ref": "#/definitions/Prisma.Without<Prisma.PostUncheckedUpdateManyWithoutAuthorInput,Prisma.PostUpdateManyMutationInput>"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "content": {
+                    "anyOf": [
+                      {
+                        "$ref": "#/definitions/Prisma.StringFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "createdAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      {
+                        "$ref": "#/definitions/Prisma.DateTimeFieldUpdateOperationsInput"
+                      },
+                      {
+                        "type": "string"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "Prisma.Without<Prisma.PostUpdateManyMutationInput,Prisma.PostUncheckedUpdateManyWithoutAuthorInput>": {
+        "type": "object"
+      },
+      "Prisma.Without<Prisma.PostUncheckedUpdateManyWithoutAuthorInput,Prisma.PostUpdateManyMutationInput>": {
+        "type": "object"
+      },
+      "Prisma.PostUpdateManyWithWhereWithoutAuthorInput": {
+        "$ref": "#/definitions/__type_23"
+      },
+      "Prisma.PostUpdateManyWithoutAuthorNestedInput": {
+        "$ref": "#/definitions/__type_4"
+      },
+      "Prisma.UserUpdateInput": {
+        "$ref": "#/definitions/__type"
+      },
+      "__type_25": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "create": {
+            "$ref": "#/definitions/Prisma.UserGetPayload"
+          }
+        }
+      },
+      "__type_26": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "createdAt": {
+            "$ref": "#/definitions/Date"
+          },
+          "updatedAt": {
+            "$ref": "#/definitions/Date"
+          }
+        }
+      },
+      "Prisma.UserGetPayload": {
+        "$ref": "#/definitions/__type_26"
+      },
+      "UnExportedType": {
+        "$ref": "#/definitions/__type_25"
+      }
+    }
+  }
+}

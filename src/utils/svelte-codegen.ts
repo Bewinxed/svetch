@@ -9,6 +9,8 @@ import {
 	TypeFlags,
 	type TypeAliasDeclaration,
 	type TypeChecker,
+	ImportDeclaration,
+	SyntaxKind,
 } from "ts-morph";
 import type { FormattedType } from "../types/core.js";
 
@@ -192,7 +194,10 @@ export function footprintOfType({
 	if (imported_type) {
 		return imported_type;
 	}
-	if (type.getText().includes("Prisma.") || type.getText().includes("prisma.")) {
+	if (
+		type.getText().includes("Prisma.") ||
+		type.getText().includes("prisma.")
+	) {
 		result = getTypeImport(type, node.getSourceFile());
 	} else if (isPrimitive(type)) {
 		// console.log("primitive", type.getText());
@@ -310,22 +315,79 @@ function getTypeImport(type: Type, sourceFile: SourceFile): FormattedType {
 	const typeAliases = sourceFile.getTypeAliases();
 	const imports = new Set<string>();
 
-	// Helper function to check if types are equivalent
 	function areTypesEquivalent(type1: Type, type2: Type): boolean {
 		return type1.getText() === type2.getText();
 	}
 
-	// Helper function to get formatted type from alias
+	function standardizeImport(importDecl: ImportDeclaration): string {
+		const namedImports = importDecl
+			.getNamedImports()
+			.map((named) => named.getName());
+		const moduleSpecifier = importDecl.getModuleSpecifierValue();
+
+		const importedSourceFile = importDecl.getModuleSpecifierSourceFile();
+		if (importedSourceFile) {
+			if (
+				importedSourceFile.isFromExternalLibrary() ||
+				importedSourceFile.isInNodeModules()
+			) {
+				// For external libraries or node_modules, use the module specifier as is
+				return `import type { ${namedImports.join(", ")} } from "${moduleSpecifier}";`;
+			}
+			// For local imports, use relative path
+			const relativePath =
+				sourceFile.getRelativePathAsModuleSpecifierTo(importedSourceFile);
+			return `import type { ${namedImports.join(", ")} } from "${relativePath}";`;
+		}
+
+		// Fallback to original module specifier if source file not found
+		return `import type { ${namedImports.join(", ")} } from "${moduleSpecifier}";`;
+	}
+
+	function getExternalImports(node: Node): Set<string> {
+		const externalImports = new Set<string>();
+		const project = node.getProject();
+
+		node.forEachDescendant((descendant) => {
+			if (Node.isIdentifier(descendant)) {
+				const symbol = descendant.getSymbol();
+				if (symbol) {
+					const declarations = symbol.getDeclarations();
+					for (const declaration of declarations) {
+						const importDecl = declaration.getFirstAncestorByKind(
+							SyntaxKind.ImportDeclaration,
+						);
+						if (importDecl) {
+							externalImports.add(standardizeImport(importDecl));
+						}
+					}
+				}
+			}
+		});
+
+		return externalImports;
+	}
+
 	function getFormattedTypeFromAlias(
 		alias: TypeAliasDeclaration,
 	): FormattedType | null {
 		const aliasType = alias.getType();
 		if (areTypesEquivalent(type, aliasType)) {
 			const aliasName = alias.getName();
-			const importDeclaration = alias.getImportDeclaration();
+			const importDeclaration = alias.getFirstAncestorByKind(
+				SyntaxKind.ImportDeclaration,
+			);
 
 			if (importDeclaration) {
-				const moduleSpecifier = importDeclaration.getModuleSpecifierValue();
+				imports.add(standardizeImport(importDeclaration));
+			} else if (!alias.isExported()) {
+				// If the type is not exported, copy its definition and get external imports
+				const aliasDefinition = alias.getFullText();
+				imports.add(aliasDefinition);
+
+				// Add standardized external imports
+				const externalImports = getExternalImports(alias);
+				externalImports.forEach((imp) => imports.add(imp));
 			}
 
 			return {

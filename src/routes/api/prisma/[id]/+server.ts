@@ -24,6 +24,11 @@ export const POST = async ({ request }) => {
 	return json(results);
 };
 
+type UnExportedType = {
+	id: string;
+	create: Prisma.UserGetPayload<object>;
+};
+
 export const PATCH = async ({ request, params, url }) => {
 	const id = params.id as string;
 	const string_param = url.searchParams.get("query") as string;
@@ -37,7 +42,7 @@ export const PATCH = async ({ request, params, url }) => {
 	}>;
 
 	if (ree) {
-		return new Response("hi");
+		return new Response({} as UnExportedType);
 	}
 
 	if (blah) {
@@ -66,9 +71,8 @@ export const PATCH = async ({ request, params, url }) => {
 
 	if (json) {
 		return new Response(
-			JSON.stringify(
-				sessions as Prisma.SessionGetPayload<object>,
-				(_, value) => (typeof value === "bigint" ? value.toString() : value),
+			JSON.stringify(sessions as Prisma.PostGetPayload<object>[], (_, value) =>
+				typeof value === "bigint" ? value.toString() : value,
 			),
 		);
 	}

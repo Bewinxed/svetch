@@ -1,7 +1,7 @@
-import * as commentParser from "comment-parser";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
+import * as commentParser from "comment-parser";
 
 import {
 	CallExpression,
@@ -24,7 +24,7 @@ import {
 	type TypeChecker,
 	type TypeNode,
 	type TypeReferenceNode,
-	VariableDeclaration,
+	type VariableDeclaration,
 	type VariableStatement,
 } from "ts-morph";
 import * as TJS from "typescript-json-schema";
@@ -36,9 +36,9 @@ import type {
 	ScriptArgs,
 } from "./types/core.js";
 
+import { fileURLToPath } from "node:url";
 import ansiColors from "ansi-colors";
 import { parseSchema } from "json-schema-to-zod";
-import { fileURLToPath } from "node:url";
 import ora, { type Ora } from "ora";
 import { extract_kit_error } from "./lib/parsers/sveltekit/responses.js";
 import type { Telemetry } from "./types/telemetry.js";
@@ -48,6 +48,7 @@ import {
 	log_node_with_location,
 	node_location_and_line,
 } from "./utils/logger.js";
+import { generateOpenAPISpec } from "./utils/openapi.js";
 import { footprintOfType } from "./utils/svelte-codegen.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -594,7 +595,9 @@ function extract_return_statement(
 		const expression = node.getExpression();
 		if (!expression) {
 			spinner.warn(
-				`Detected return statement without expression ${node_text_snippet(node)}`,
+				`Detected return statement without expression ${node_text_snippet(
+					node,
+				)}`,
 			);
 			return;
 		}
@@ -955,8 +958,6 @@ function processActionsDeclaration(
 		actions[apiPath] = {};
 	}
 
-	const typeNode = declaration.getTypeNodeOrThrow();
-
 	const methodType = "ACTION";
 
 	if (!actions[apiPath][methodType]) {
@@ -1134,7 +1135,7 @@ function ms_to_human_readable(ms: number) {
 async function processFiles(spinner: Ora) {
 	const start = performance.now();
 	const all_files = project.getSourceFiles();
-	console.log(all_files.map((file) => file.getFilePath()));
+	// console.log(all_files.map((file) => file.getFilePath()));
 	spinner.text = "Scanning for API endpoints...";
 	spinner.info(
 		`Found ${all_files.length} files in ${ms_to_human_readable(
@@ -1407,12 +1408,6 @@ const generateResponsesType = (
 	return `{\n${responseTypes.join(";\n")}\n  }`;
 };
 
-const generateErrorsType = (
-	errors: Record<string, FormattedType[]>,
-): string => {
-	return objectToUnquotedString(errors);
-};
-
 function formatObject(obj: any): string {
 	if (obj === undefined) {
 		return "undefined";
@@ -1488,7 +1483,7 @@ async function generateActionsOutput(): Promise<string> {
 		actionOutput += "  },\n";
 	}
 
-	return "export interface ActionPaths {\n" + actionOutput + "};\n";
+	return `export interface ActionPaths {\n${actionOutput}};\n`;
 }
 
 let jsonSchema: TJS.Definition | null = null;
@@ -1568,9 +1563,22 @@ async function generateSchema() {
 		// basePath
 	);
 
+	// write to disk
+	// fs.writeFileSync(
+	// 	path.join(staticFolder, "api", "schemas", "openapi.json"),
+	// 	JSON.stringify(openapi_schema, null, 2),
+	// );
+
+	// generate schema for
+
+	const schemas: Record<string, TJS.Definition> = {};
+
 	for (const method of ["GET", "POST", "PUT", "PATCH", "DELETE"]) {
 		// We can either get the schema for one file and one type...
 		const schema = TJS.generateSchema(program, method, settings);
+		if (schema) {
+			schemas[method] = schema;
+		}
 
 		jsonSchema = schema;
 
@@ -1593,6 +1601,12 @@ async function generateSchema() {
 		]);
 	}
 
+	const openApiSpec = generateOpenAPISpec(schemas);
+	fs.writeFileSync(
+		path.join(staticFolder, "api", "schemas", "openapi.json"),
+		JSON.stringify(openApiSpec, null, 2),
+	);
+
 	spinner.succeed(
 		`Generated API JSON schema successfully, ${ms_to_human_readable(
 			performance.now() - start,
@@ -1613,6 +1627,7 @@ async function generateZodSchema() {
 }
 
 function generateSvetchDocs() {
+	const static_folder = path.resolve(workingDir, staticFolder);
 	const docs = fs
 		.readFileSync(path.resolve(__dirname, "./assets/docs/+page.svelte"))
 		.toString()
@@ -1729,12 +1744,6 @@ async function generateAll() {
 		);
 
 		spinner.info(
-			`Generating Client..., ${ms_to_human_readable(
-				performance.now() - start,
-			)}`,
-		);
-
-		spinner.info(
 			`Writing files to ${outputPath}, ${ms_to_human_readable(
 				performance.now() - start,
 			)}`,
@@ -1749,10 +1758,16 @@ async function generateAll() {
 			try {
 				await generateSchema();
 			} catch (error) {
+				console.error(error);
 				spinner.warn(
 					`Error generating schema, please report this to the developer: ${error}`,
 				);
 			}
+			spinner.info(
+				`Generating Client..., ${ms_to_human_readable(
+					performance.now() - start,
+				)}`,
+			);
 			await generateClientOutput(client);
 		});
 
