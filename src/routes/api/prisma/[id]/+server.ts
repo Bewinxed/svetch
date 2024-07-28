@@ -87,7 +87,7 @@ export const PATCH = async ({ request, params, url }) => {
 
 	if (lucia) {
 		const session = {} as Session;
-		return json(session);
+		return json(session.userId);
 	}
 	return json(results);
 };

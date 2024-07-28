@@ -16,18 +16,13 @@ Svetch automatically scans your `+server.ts` files in /src/routes/api (or whatev
 - ❓ **Query Params** => Detected using any declarations of `url.searchParams.get`
 - 📂 **Path Params** => Detected from the file directory
 - 📦 **Payload Definition** => inferred from `const payload: X = await request.json` or `as X`
-- 💬 **Response Definition** => inferred from any return statement with `json(X)` or `new Response(X)`
-- 📛 **Error Definitions** => inferred from any throw statement with `throw error()` or `throw new Error`
+- 💬 **Response Definition** => inferred from any return statement with `json(X) (sveltekit utility)` or `new Response(X)`
+- 📛 **Error Definitions** => inferred from any throw statement with `throw error()` or `throw new Error` or `return error(HTTP_CODE, error_message)`
 
-# ⏬ Installation
+# ⏬ How to run
 
-### Install the package
-
-`$ npm install svetch.ts`
-
-### Run the script for first-time config & first-run
-
-`$ npx svetch.ts`
+`$ npx svetch.ts@latest`
+`$ bunx svetch.ts@latest`
 
 ### Make sure you have a path alias for src in your `svelte.config.js`
 
@@ -97,8 +92,6 @@ get it here: [DaisyUI](https://daisyui.com/installation) & [Tailwind](https://ta
 
 # ⚙ Config
 
-### You can reeinitiate your configs anytime with `npx svetch.ts init`
-
 `.svetchrc`
 
 ```json
@@ -107,9 +100,7 @@ get it here: [DaisyUI](https://daisyui.com/installation) & [Tailwind](https://ta
   "input": "src/routes/api", // the directory you want the generator to traverse
   "out": "src/lib/api", // the directory to output the types & the client to
   "docs": "src/routes/docs", // where to output docs
-  "tsconfig": "tsconfig.json", // your tsconfig directory
-  "logLevel": 5, // logging level,
-  "filter": null // only show console alerts of this level ('debug', 'warn', 'success', 'warn')
+  "tsconfig": "tsconfig.json" // your tsconfig directory
 }
 ```
 
@@ -130,7 +121,7 @@ import { Svetch } from "src/lib/api/client"; // or wherever you chose to generat
 const svetch = new Svetch({
   baseUrl: "/api", // default is '/api'
   fetch, // default is window.fetch, pass the global fetch to it in node, etc...
-  validate: true, // default is false, uses Zod to validate payload + response
+  validate: false, // default is false, uses Zod to validate payload + response (ON CLIENT THIS CAN MAKE THE IMPORT SIZE HUGE)
 });
 
 await svetch

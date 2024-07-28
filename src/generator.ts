@@ -798,42 +798,39 @@ function process_call_expression(
 
 	const args = expression.getArguments();
 
-	if (args.length > 0) {
-		const firstArg = args[0];
+	const first_arg = args.at(0);
+
+	if (first_arg) {
 		if (
-			CallExpression.isCallExpression(firstArg) ||
-			NewExpression.isNewExpression(firstArg)
+			CallExpression.isCallExpression(first_arg) ||
+			NewExpression.isNewExpression(first_arg)
 		) {
-			return process_call_expression(firstArg, spinner);
+			return process_call_expression(first_arg, spinner);
 		}
-		if (Identifier.isIdentifier(firstArg)) {
-			result.resultsDeclaration = processReturnIdentifier(firstArg);
-		} else if (PropertyAccessExpression.isPropertyAccessExpression(firstArg)) {
-			const subExpression = firstArg.getExpression();
-			// console.error(
-			// 	`Property access expression:`,
-			// 	subExpression.getKindName(),
-			// 	subExpression.getText(),
-			// );
-			if (
-				CallExpression.isCallExpression(subExpression) ||
-				NewExpression.isNewExpression(subExpression)
-			) {
-				return process_call_expression(subExpression, spinner);
-			}
+
+		if (Identifier.isIdentifier(first_arg)) {
+			result.resultsDeclaration = processReturnIdentifier(first_arg);
 		} else if (StringLiteral) {
-			result.resultsDeclaration = firstArg;
-		} else if (NumericLiteral.isNumericLiteral(firstArg)) {
-			result.status = Number.parseInt(firstArg.getText());
+			result.resultsDeclaration = first_arg;
+		} else if (NumericLiteral.isNumericLiteral(first_arg)) {
+			result.status = Number.parseInt(first_arg.getText());
+		} else if (PropertyAccessExpression.isPropertyAccessExpression(first_arg)) {
+			result.resultsDeclaration = first_arg.getNameNode();
 		} else {
 			console.error(
 				"Unhandled first argument type:",
-				firstArg?.getKindName(),
-				firstArg?.getText(),
+				first_arg?.getKindName(),
+				first_arg?.getText(),
 			);
-			result.resultsDeclaration = firstArg;
+			result.resultsDeclaration = first_arg;
 		}
 	}
+
+	// console.error(
+	// 	"uwu",
+	// 	args.map((arg) => arg.getKindName()),
+	// 	result.resultsDeclaration?.getText(),
+	// );
 
 	const statusArg = args.find((arg) =>
 		ObjectLiteralExpression.isObjectLiteralExpression(arg),
@@ -1402,7 +1399,8 @@ const generateResponsesType = (
 	if (!responses) return "undefined";
 	const responseTypes: string[] = [];
 	for (const [status, responseArray] of Object.entries(responses)) {
-		const types = responseArray?.map((response) => response.typeString)
+		const types = responseArray
+			?.map((response) => response.typeString)
 			.join(" | ");
 		responseTypes.push(`    ${status}: ${types}`);
 	}
