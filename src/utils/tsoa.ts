@@ -12,16 +12,12 @@ import {
 	type ExtendedSpecConfig,
 } from "tsoa";
 import path from "node:path";
+import { brackets, newline } from "./writers.js";
 
-export async function generate_tsoa_shema(endpoints: Endpoints) {
-	const specOptions: ExtendedSpecConfig = {
-		basePath: "/api",
-		entryFile: "./tsoa/server.ts",
-		specVersion: 3,
-		outputDirectory: "./tsoa/api/dist",
-		controllerPathGlobs: ["./tsoa/routeControllers/**/*Controller.ts"],
-		noImplicitAdditionalProperties: "silently-remove-extras",
-	};
+export async function generate_tsoa_shema(
+	endpoints: Endpoints,
+	staticFolder: string,
+) {
 	// const routeOptions: ExtendedRoutesConfig = {
 	// 	basePath: "/api",
 	// 	entryFile: "./tsoa/server.ts",
@@ -33,11 +29,11 @@ export async function generate_tsoa_shema(endpoints: Endpoints) {
 	for (const [api_path, method_map] of endpoints.entries()) {
 		const controller = generate_tsoa_controller(api_path, method_map);
 		if (controller) {
-			await write_route_controller(api_path, controller);
+			await write_route_controller(api_path, controller, staticFolder);
 		}
 	}
 
-	await generateSpec(specOptions);
+	await write_spec(staticFolder);
 }
 
 function generate_tsoa_controller(path: string, method_map: MethodMap) {
@@ -50,11 +46,27 @@ function generate_tsoa_controller(path: string, method_map: MethodMap) {
 		.replace(/\//g, "")
 		.replace(/-/g, "");
 
+	const endpoint = generate_route_controller(path, method_map);
+	// biome-ignore lint/complexity/noForEach: <explanation>
+	endpoint.imports.forEach((imp) => imports.add(imp));
+
 	let output = `
         @Route("${path}")
-        export class ${controller_name}Controller extends Controller {
-        `;
+        export class ${controller_name}Controller extends Controller`;
+	output += newline(brackets(endpoint.output));
+	output = [Array.from(imports).join("\n"), output].join("\n");
+	return output;
+}
 
+function generate_route_controller(
+	api_path: string,
+	method_map: MethodMap,
+): {
+	imports: Set<string>;
+	output: string;
+} {
+	const imports = new Set<string>();
+	let output = "";
 	for (const [method, endpoint] of method_map.entries()) {
 		const method_name = method.slice(0, 1) + method.slice(1).toLowerCase();
 		// capitalize
@@ -65,9 +77,7 @@ function generate_tsoa_controller(path: string, method_map: MethodMap) {
 		output += `
         @${method_name}()`;
 		const responses = generate_endpoint_responses(endpoint);
-		for (const response of responses.responses) {
-			output += response;
-		}
+		output += responses.responses.join("\n");
 		for (const imp of responses.imports) {
 			imports.add(imp);
 		}
@@ -105,30 +115,27 @@ function generate_tsoa_controller(path: string, method_map: MethodMap) {
 		}
 		output += `
         ${args.join("\n,")}
-        ): Promise<void> {
-                return;
+        ) {
+                return ${endpoint.responses[200]?.at(0)?.typeString ? `({} as ${endpoint.responses[200]?.at(0)?.typeString})` : ""};
             }`;
 	}
 
-	output += `
-    }`;
-
-	output = `${Array.from(imports).join("\n")}\n${output}`;
-	return output;
+	return { imports, output };
 }
 
-async function write_route_controller(api_path: string, output: string) {
+async function write_route_controller(
+	api_path: string,
+	output: string,
+	staticFolder: string,
+) {
 	const output_path = path.join(
-		process.cwd(),
+		staticFolder,
 		"tsoa",
-		"routeControllers",
+		"controllers",
 		api_path.replace(/:(\w+)/g, "{$1}"),
 	);
-	console.error(output_path);
-
 	// create dir
 	if (!existsSync(output_path)) {
-		console.error(output_path);
 		await fs.mkdir(output_path, { recursive: true });
 	}
 	await fs.writeFile(path.join(output_path, "Controller.ts"), output);
@@ -142,17 +149,15 @@ function generate_endpoint_responses(endpoint: EndpointDefinition): {
 	const responses: string[] = [];
 	for (const [status, res] of Object.entries(endpoint.responses)) {
 		if (res) {
+			const responses: string[] = [];
 			for (const response of res) {
-				if (response.imports) {
-					for (const imp of response.imports) {
-						imports.add(imp);
-					}
-
-					const http_status = Number.parseInt(status);
-
-					responses.push(`@Response<${response.typeString}>(${http_status})\n`);
+				response.imports?.forEach((imp, i) => imports.add(imp));
+				if (response.typeString) {
+					responses.push(response.typeString);
 				}
 			}
+			const http_status = Number.parseInt(status);
+			responses.push(`@Response<${responses.join(" | ")}>(${http_status})\n`);
 		}
 	}
 	for (const [status, res] of Object.entries(endpoint.errors)) {
@@ -171,4 +176,24 @@ function generate_endpoint_responses(endpoint: EndpointDefinition): {
 		}
 	}
 	return { responses, imports };
+}
+
+async function write_spec(staticFolder: string) {
+	const tsoa_working_dir = path.join(staticFolder, "tsoa");
+	const spec_output_path = path.join(staticFolder, "api", "schemas");
+	if (!existsSync(tsoa_working_dir)) {
+		await fs.mkdir(tsoa_working_dir, { recursive: true });
+	}
+	await generateSpec({
+		basePath: "/api",
+		entryFile: `${path.join(tsoa_working_dir, "server.ts")}`,
+		specVersion: 3,
+		outputDirectory: spec_output_path,
+		controllerPathGlobs: [
+			path.join(tsoa_working_dir, "controllers/**/*Controller.ts"),
+		],
+		noImplicitAdditionalProperties: "silently-remove-extras",
+	}).then(async () => {
+		await fs.rm(tsoa_working_dir, { recursive: true, force: true });
+	});
 }

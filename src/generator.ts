@@ -52,6 +52,8 @@ import {
 import { generateOpenAPISpec } from "./utils/openapi.js";
 import { footprintOfType } from "./utils/svelte-codegen.js";
 import { generate_tsoa_shema } from "./utils/tsoa.js";
+import { brackets, newline } from "./utils/writers.js";
+import { hashNode } from "./utils/node_utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -627,14 +629,19 @@ function extract_return_statement(
 function extractEndpointResponses(
 	allDeclarations: Node[],
 ): [number, FormattedType][] {
+	const processed_nodes = new Set<string>();
 	const responses: [number, FormattedType][] = [];
-
 	const spinner = ora({
 		color: "yellow",
 		indent: 7,
 	}).start();
 
 	for (const node of allDeclarations) {
+		const hash = hashNode(node);
+		if (processed_nodes.has(hash)) {
+			continue;
+		}
+		processed_nodes.add(hash);
 		let result: StatementResult | undefined = undefined;
 		const error_node = extractErrorDetails(node);
 		if (error_node) {
@@ -648,6 +655,7 @@ function extractEndpointResponses(
 						: processTypeNode(error_node.node),
 				]);
 			}
+			// console.error(error_node.node.getText());
 			continue;
 		}
 		result =
@@ -1304,22 +1312,29 @@ async function generateApiTypes() {
 			}
 
 			if (endpointDef.errors && Object.keys(endpointDef.errors).length > 0) {
-				10;
-				methodTypes[method] += "    errors: {\n";
-				for (const [status, responses] of Object.entries(endpointDef.errors)) {
-					methodTypes[method] += `      ${status}: `;
-					for (const response of responses) {
-						if (response.imports) {
-							for (const imp of response.imports) {
-								imports.add(imp);
+				methodTypes[method] += `    errors: ${newline(
+					brackets(
+						(() => {
+							let output = "";
+							for (const [status, responses] of Object.entries(
+								endpointDef.errors,
+							)) {
+								output += `      ${status}: `;
+								for (const response of responses) {
+									if (response.imports) {
+										for (const imp of response.imports) {
+											imports.add(imp);
+										}
+									}
+								}
+								output += `${Array.from(responses.values())
+									.map((response) => response.typeString)
+									.join(" | ")};`;
 							}
-						}
-					}
-					methodTypes[method] += `${Array.from(responses.values())
-						.map((response) => response.typeString)
-						.join(" | ")};\n`;
-				}
-				methodTypes[method] += "};\n";
+							return output;
+						})(),
+					),
+				)}`;
 			} else {
 				methodTypes[method] += "    errors?: never;\n";
 			}
@@ -1399,7 +1414,9 @@ const generateParametersType = (
 const generateResponsesType = (
 	responses?: Partial<Record<number, FormattedType[]>>,
 ): string => {
-	if (!responses) return "undefined";
+	if (!responses) {
+		return "undefined";
+	}
 	const responseTypes: string[] = [];
 	for (const [status, responseArray] of Object.entries(responses)) {
 		const types = responseArray
@@ -1603,13 +1620,6 @@ async function generateSchema() {
 		]);
 	}
 
-	await generate_tsoa_shema(endpoints).catch(console.error);
-	// const openApiSpec = generateOpenAPISpec(schemas);
-	// fs.writeFileSync(
-	// 	path.join(staticFolder, "api", "schemas", "openapi.json"),
-	// 	JSON.stringify(openApiSpec, null, 2),
-	// );
-
 	spinner.succeed(
 		`Generated API JSON schema successfully, ${ms_to_human_readable(
 			performance.now() - start,
@@ -1759,7 +1769,7 @@ async function generateAll() {
 			generateSvetchDocs(),
 		]).then(async () => {
 			try {
-				await generateSchema();
+				await generate_tsoa_shema(endpoints, staticFolder);
 			} catch (error) {
 				console.error(error);
 				spinner.warn(

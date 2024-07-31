@@ -95,3 +95,11 @@ export const PATCH = async ({ request, params, url }) => {
 	}
 	return json(results);
 };
+
+export const GET = async ({ params, url }) => {
+	const id = params.id as string;
+	const string_param = url.searchParams.get("query") as string;
+	const number_param = url.searchParams.get("number") as number;
+
+	return json();
+};

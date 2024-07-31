@@ -170,7 +170,7 @@
 				"operationId": "Post",
 				"responses": {
 					"200": {
-						"description": "",
+						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
@@ -233,8 +233,7 @@
 													"type": "string"
 												},
 												"name": {
-													"type": "string",
-													"nullable": true
+													"type": "string"
 												},
 												"email": {
 													"type": "string"
@@ -293,16 +292,9 @@
 											"type": "object"
 										}
 									]
-								},
-								"examples": {
-									"Example 1": {},
-									"Example 2": {}
 								}
 							}
 						}
-					},
-					"204": {
-						"description": "No content"
 					}
 				},
 				"security": [],
@@ -331,118 +323,89 @@
 				"operationId": "Patch",
 				"responses": {
 					"200": {
-						"description": "",
+						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"allOf": [
-										{
-											"properties": {
-												"author": {
-													"properties": {
-														"updatedAt": {
-															"type": "string",
-															"format": "date-time"
+									"items": {
+										"allOf": [
+											{
+												"properties": {
+													"author": {
+														"properties": {
+															"updatedAt": {
+																"type": "string",
+																"format": "date-time"
+															},
+															"createdAt": {
+																"type": "string",
+																"format": "date-time"
+															},
+															"password": {
+																"type": "string"
+															},
+															"name": {
+																"type": "string"
+															},
+															"email": {
+																"type": "string"
+															},
+															"id": {
+																"type": "string"
+															}
 														},
-														"createdAt": {
-															"type": "string",
-															"format": "date-time"
-														},
-														"password": {
-															"type": "string"
-														},
-														"name": {
-															"type": "string",
-															"nullable": true
-														},
-														"email": {
-															"type": "string"
-														},
-														"id": {
-															"type": "string"
-														}
+														"required": [
+															"updatedAt",
+															"createdAt",
+															"password",
+															"name",
+															"email",
+															"id"
+														],
+														"type": "object"
+													}
+												},
+												"required": [
+													"author"
+												],
+												"type": "object"
+											},
+											{
+												"properties": {
+													"authorId": {
+														"type": "string"
 													},
-													"required": [
-														"updatedAt",
-														"createdAt",
-														"password",
-														"name",
-														"email",
-														"id"
-													],
-													"type": "object"
-												}
-											},
-											"required": [
-												"author"
-											],
-											"type": "object"
-										},
-										{
-											"properties": {
-												"authorId": {
-													"type": "string"
+													"updatedAt": {
+														"type": "string",
+														"format": "date-time"
+													},
+													"createdAt": {
+														"type": "string",
+														"format": "date-time"
+													},
+													"content": {
+														"type": "string"
+													},
+													"title": {
+														"type": "string"
+													},
+													"id": {
+														"type": "string"
+													}
 												},
-												"updatedAt": {
-													"type": "string",
-													"format": "date-time"
-												},
-												"createdAt": {
-													"type": "string",
-													"format": "date-time"
-												},
-												"content": {
-													"type": "string"
-												},
-												"title": {
-													"type": "string"
-												},
-												"id": {
-													"type": "string"
-												}
-											},
-											"required": [
-												"authorId",
-												"updatedAt",
-												"createdAt",
-												"content",
-												"title",
-												"id"
-											],
-											"type": "object"
-										}
-									]
-								},
-								"examples": {
-									"Example 1": {},
-									"Example 2": {},
-									"Example 3": {},
-									"Example 4": {},
-									"Example 5": {},
-									"Example 6": {},
-									"Example 7": {},
-									"Example 8": {},
-									"Example 9": {}
-								}
-							}
-						}
-					},
-					"204": {
-						"description": "No content"
-					},
-					"400": {
-						"description": "",
-						"content": {
-							"application/json": {
-								"schema": {
-									"type": "string",
-									"enum": [
-										"Not OK"
-									],
-									"nullable": false
-								},
-								"examples": {
-									"Example 1": {}
+												"required": [
+													"authorId",
+													"updatedAt",
+													"createdAt",
+													"content",
+													"title",
+													"id"
+												],
+												"type": "object"
+											}
+										]
+									},
+									"type": "array"
 								}
 							}
 						}
@@ -486,6 +449,42 @@
 						}
 					}
 				}
+			},
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "number",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
 			}
 		}
 	},

@@ -84,7 +84,7 @@ function handlePrimitiveType(type: Type): FormattedType {
 function handleArrayType(type: Type, next: (type: Type) => FormattedType) {
 	const elementType = type.getArrayElementTypeOrThrow();
 	const elementResult = next(elementType);
-	const imports = elementResult.imports;
+	const { imports } = elementResult;
 	const typeString = isPrimitive(elementType)
 		? `${elementResult.typeString}[]`
 		: `Array<\n${indent(elementResult?.typeString)}\n>`;
