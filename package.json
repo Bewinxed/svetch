@@ -68,5 +68,5 @@
   },
   "type": "module",
   "types": "./dist/src/index.d.ts",
-  "version": "2.1.15"
+  "version": "2.1.16"
 }
