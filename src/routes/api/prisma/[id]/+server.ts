@@ -1,8 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import type { Session } from "lucia";
-import { json } from "stream/consumers";
+
 export const POST = async ({ request }) => {
-	const payload = {} as Prisma.UserCreateInput;
+	const payload = {} as Prisma.UserCreateWithoutPostsInput;
 
 	type PrettifiedPayload = {
 		[K in keyof Prisma.UserCreateInput]: Prisma.UserCreateInput[K];
@@ -33,7 +33,7 @@ export const PATCH = async ({ request, params, url }) => {
 	const id = params.id as string;
 	const string_param = url.searchParams.get("query") as string;
 	const number_param = url.searchParams.get("number") as number;
-	const payload = {} as Prisma.UserUpdateInput;
+	const payload = {} as Prisma.UserUpdateWithoutPostsInput;
 
 	const results = {} as Prisma.PostGetPayload<{
 		include: {

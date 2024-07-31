@@ -25,7 +25,9 @@ export type EndpointDefinition = {
 	imports: Set<string>;
 };
 
-export type Endpoints = Map<string, Map<HTTP_METHOD, EndpointDefinition>>;
+export type MethodMap = Map<HTTP_METHOD, EndpointDefinition>;
+
+export type Endpoints = Map<string, MethodMap>;
 
 export type HTTP_METHOD =
 	| "GET"

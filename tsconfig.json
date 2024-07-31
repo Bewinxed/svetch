@@ -21,6 +21,7 @@
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
     "declaration": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "experimentalDecorators": true
   }
 }

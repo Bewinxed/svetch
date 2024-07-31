@@ -30,6 +30,7 @@ import {
 import * as TJS from "typescript-json-schema";
 import type {
 	EndpointDefinition,
+	Endpoints,
 	ErrorDetails,
 	FormattedType,
 	HTTP_METHOD,
@@ -50,6 +51,7 @@ import {
 } from "./utils/logger.js";
 import { generateOpenAPISpec } from "./utils/openapi.js";
 import { footprintOfType } from "./utils/svelte-codegen.js";
+import { generate_tsoa_shema } from "./utils/tsoa.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -110,8 +112,8 @@ let typeChecker: TypeChecker;
 let outputPath: string;
 let schemaOutputPath: string;
 let docsOutputPath: string;
-type MethodMap = Map<HTTP_METHOD, EndpointDefinition>;
-const endpoints: Map<string, MethodMap> = new Map();
+const endpoints: Endpoints = new Map();
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 const actions: Record<string, Record<string, any>> = {};
 const importMap = {};
 
@@ -1601,11 +1603,12 @@ async function generateSchema() {
 		]);
 	}
 
-	const openApiSpec = generateOpenAPISpec(schemas);
-	fs.writeFileSync(
-		path.join(staticFolder, "api", "schemas", "openapi.json"),
-		JSON.stringify(openApiSpec, null, 2),
-	);
+	await generate_tsoa_shema(endpoints).catch(console.error);
+	// const openApiSpec = generateOpenAPISpec(schemas);
+	// fs.writeFileSync(
+	// 	path.join(staticFolder, "api", "schemas", "openapi.json"),
+	// 	JSON.stringify(openApiSpec, null, 2),
+	// );
 
 	spinner.succeed(
 		`Generated API JSON schema successfully, ${ms_to_human_readable(

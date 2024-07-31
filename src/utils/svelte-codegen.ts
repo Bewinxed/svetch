@@ -9,8 +9,9 @@ import {
 	TypeFlags,
 	type TypeAliasDeclaration,
 	type TypeChecker,
-	ImportDeclaration,
+	type ImportDeclaration,
 	SyntaxKind,
+	AsExpression,
 } from "ts-morph";
 import type { FormattedType } from "../types/core.js";
 
@@ -42,7 +43,7 @@ interface FootprintParams {
 const processedTypes = new WeakMap<Type, FormattedType>();
 
 const DEPTH_LIMIT = 3; // Adjust this value as needed
-const MAX_DEPTH = 10; // Adjust this value as needed
+const MAX_DEPTH = 15; // Adjust this value as needed
 
 function handlePrimitiveType(type: Type): FormattedType {
 	let typeString: string;
@@ -154,7 +155,7 @@ export function footprintOfType({
 	}
 
 	if (depth > MAX_DEPTH && flags.includes("traverse")) {
-		throw new Error(`Max depth exceeded for type: ${type.getText()}`);
+		return { typeString: "unknown", imports: new Set<string>() };
 	}
 
 	//   // console.log("max depth", type.getText());
@@ -188,18 +189,24 @@ export function footprintOfType({
 			typeChecker,
 		});
 
-	// log the type of type
-	// if prisma type
-	const imported_type = getTypeImport(type, node.getSourceFile());
-	if (imported_type) {
-		return imported_type;
+	const type_alias = node.getSourceFile().getTypeAlias(type.getText());
+
+	if (type_alias) {
+		return next(type_alias.getType(), [...flags, "traverse"]);
 	}
 	if (
-		type.getText().includes("Prisma.") ||
-		type.getText().includes("prisma.")
+		!(type_alias ?? type).getText().includes("Prisma.") ||
+		!(type_alias ?? type).getText().includes("prisma.")
 	) {
-		result = getTypeImport(type, node.getSourceFile());
-	} else if (isPrimitive(type)) {
+		const imported_type = getTypeImport(type, node.getSourceFile());
+		if (imported_type) {
+			return imported_type;
+		}
+	}
+
+	// print type
+
+	if (isPrimitive(type)) {
 		// console.log("primitive", type.getText());
 		result = handlePrimitiveType(type);
 	} else if (type.isArray()) {
