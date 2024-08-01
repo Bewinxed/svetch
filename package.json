@@ -1,5 +1,8 @@
 {
   "author": "Omar Al Matar",
+  "funding": [
+    "https://petrasolutions.lemonsqueezy.com/checkout/buy/19210e05-ae3c-41a0-920c-324e3083618d"
+  ],
   "bin": {
     "svetch.ts": "./dist/src/bin.js"
   },
@@ -49,7 +52,10 @@
     "sveltekit",
     "typescript",
     "fetch",
-    "typesafe"
+    "typesafe",
+    "svetch.ts",
+    "openapi",
+    "swagger"
   ],
   "license": "Paid",
   "main": "./dist/src/index.js",
@@ -66,5 +72,5 @@
   },
   "type": "module",
   "types": "./dist/src/index.d.ts",
-  "version": "2.1.23"
+  "version": "2.1.24"
 }
