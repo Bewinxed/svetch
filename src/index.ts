@@ -6,6 +6,8 @@ import { main } from "./generator.js";
 import { performance } from "node:perf_hooks";
 import ora, { oraPromise } from "ora";
 import { spinner } from "./utils/ux/spinner.js";
+import { ChildProcess, execSync } from "node:child_process";
+import { checkAndInstallPackage } from "./utils/check_package.js";
 
 const separator = "--------------------------------------";
 
@@ -117,8 +119,7 @@ export async function initSvetchrc() {
 function readSvetchrc() {
 	try {
 		const config_file = fs.readFileSync(".svetchrc", "utf8");
-		const config = JSON.parse(config_file) as ScriptArgs;
-		return config;
+		return JSON.parse(config_file) as ScriptArgs;
 	} catch (error) {
 		console.error("Error reading .svetchrc file:", error);
 		process.exit(1);
@@ -127,6 +128,9 @@ function readSvetchrc() {
 
 export async function runAll() {
 	const start = performance.now();
+
+	// check if swagger-ui-dist is installed
+	checkAndInstallPackage("swagger-ui-dist", true);
 
 	try {
 		if (isInit || !fs.existsSync(path.resolve(workingDir, ".svetchrc"))) {

@@ -184,16 +184,26 @@ async function write_spec(staticFolder: string) {
 	if (!existsSync(tsoa_working_dir)) {
 		await fs.mkdir(tsoa_working_dir, { recursive: true });
 	}
-	await generateSpec({
-		basePath: "/api",
-		entryFile: `${path.join(tsoa_working_dir, "server.ts")}`,
-		specVersion: 3,
-		outputDirectory: spec_output_path,
-		controllerPathGlobs: [
-			path.join(tsoa_working_dir, "controllers/**/*Controller.ts"),
+	await generateSpec(
+		{
+			basePath: "/api",
+
+			entryFile: `${path.join(tsoa_working_dir, "server.ts")}`,
+			specVersion: 3,
+			outputDirectory: spec_output_path,
+			controllerPathGlobs: [
+				path.join(tsoa_working_dir, "controllers/**/*Controller.ts"),
+			],
+			noImplicitAdditionalProperties: "silently-remove-extras",
+		},
+		undefined,
+		[
+			"**/node_modules/@types/**",
+			"**/node_modules/typescript/**",
+			"**/node_modules/@tsoa/**",
+			"**/@tsoa/cli/node_modules/**",
 		],
-		noImplicitAdditionalProperties: "silently-remove-extras",
-	}).then(async () => {
+	).then(async () => {
 		await fs.rm(tsoa_working_dir, { recursive: true, force: true });
 	});
 }

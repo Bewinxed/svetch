@@ -15,15 +15,15 @@ export function extract_kit_error(
 				node,
 				`
             const error = {
-                message: '${initializer.getLiteralValue()}'
+                message: "${initializer.getLiteralValue()}"
             }
-            `,
+            `.replace("'", "\\'"),
 			).getFirstDescendantByKind(SyntaxKind.ObjectLiteralExpression)!;
 			return {
 				status: status.getLiteralValue(),
 				type_string: `
                 {
-                    message: '${initializer.getLiteralValue()}'
+                    message: "${initializer.getLiteralValue()}"
                 }
                 `,
 				node: updated_node,

@@ -12,6 +12,7 @@ import {
 	type ImportDeclaration,
 	SyntaxKind,
 	AsExpression,
+	JSDocableNode,
 } from "ts-morph";
 import type { FormattedType } from "../types/core.js";
 
@@ -122,6 +123,17 @@ function handlePromiseType(
 	return { typeString, imports: promiseResult.imports };
 }
 
+function getJSDocComment(node: Node): string | undefined {
+	if (Node.isJSDocable(node)) {
+		const jsDocs = node.getJsDocs();
+		const jsdoc = jsDocs.at(0);
+		if (jsdoc) {
+			return jsdoc.getDescription().trim();
+		}
+	}
+	return undefined;
+}
+
 export function footprintOfType({
 	type,
 	node,
@@ -172,6 +184,12 @@ export function footprintOfType({
 	//   );
 	//   return { typeString: "any", imports: new Set() };
 	// }
+
+	const jsdoc = getJSDocComment(node);
+	if (jsdoc) {
+		console.error(jsdoc);
+		result.jsdoc = jsdoc;
+	}
 
 	const symbol = type.isEnum() ? type.getSymbol() : type.getAliasSymbol();
 	if (symbol && overrides[symbol.getName()]) {

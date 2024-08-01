@@ -1,6 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import type { Session } from "lucia";
 
+/**
+ * @tsoaModel
+ */
+type Document = {};
 export const POST = async ({ request }) => {
 	const payload = {} as Prisma.UserCreateWithoutPostsInput;
 
@@ -24,6 +28,9 @@ export const POST = async ({ request }) => {
 	return json(results);
 };
 
+/**
+ * @tsoaModel
+ */
 type UnExportedType = {
 	id: string;
 	create: Prisma.UserGetPayload<object>;

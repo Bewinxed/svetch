@@ -3,6 +3,7 @@ import type { Node } from "ts-morph";
 export interface FormattedType {
 	typeString?: string;
 	imports?: Set<string>;
+	jsdoc?: string;
 }
 
 export interface ErrorDetails<T extends Node> {

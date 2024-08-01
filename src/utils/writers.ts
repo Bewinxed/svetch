@@ -6,4 +6,3 @@ export function brackets<T extends string>(string: T): `{${T}}` {
 export function newline<T extends string>(string: T): `${T}\n` {
 	return `${string}\n`;
 }
-

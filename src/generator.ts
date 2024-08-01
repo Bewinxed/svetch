@@ -27,7 +27,6 @@ import {
 	type VariableDeclaration,
 	type VariableStatement,
 } from "ts-morph";
-import * as TJS from "typescript-json-schema";
 import type {
 	EndpointDefinition,
 	Endpoints,
@@ -49,7 +48,6 @@ import {
 	log_node_with_location,
 	node_location_and_line,
 } from "./utils/logger.js";
-import { generateOpenAPISpec } from "./utils/openapi.js";
 import { footprintOfType } from "./utils/svelte-codegen.js";
 import { generate_tsoa_shema } from "./utils/tsoa.js";
 import { brackets, newline } from "./utils/writers.js";
@@ -128,7 +126,7 @@ function processTypeNode(node: Node): FormattedType {
 	// console.error(node.getText(), footprint.typeString);
 	// if the type is any
 	if (footprint.typeString === "any") {
-		console.error(node.getKindName(), node.getText());
+		// console.error(node.getKindName(), node.getText());
 	}
 	return footprint;
 }
@@ -335,7 +333,8 @@ function extractFromThrowStatement(
 	return null;
 }
 
-function extractFromCatchClause(node: CatchClause): ErrorDetails | null {
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+function extractFromCatchClause(node: CatchClause): ErrorDetails<any> | null {
 	const throwStatement = node
 		.getBlock()
 		.getFirstDescendantByKind(SyntaxKind.ThrowStatement);
@@ -460,7 +459,7 @@ function processFunctionDeclaration(
 	}
 
 	const payloadNode = extractPayloadTypeNode(endpoint_declarations);
-	if (!payloadNode) {
+	if (!payloadNode && http_method !== "GET") {
 		spinner.warn(
 			`No request body declaration found for ${http_method} method in ${file_path}`,
 		);
@@ -1328,7 +1327,7 @@ async function generateApiTypes() {
 									}
 								}
 								output += `${Array.from(responses.values())
-									.map((response) => response.typeString)
+									.map((response) => response.typeString || "any")
 									.join(" | ")};`;
 							}
 							return output;
@@ -1420,8 +1419,9 @@ const generateResponsesType = (
 	const responseTypes: string[] = [];
 	for (const [status, responseArray] of Object.entries(responses)) {
 		const types = responseArray
-			?.map((response) => response.typeString)
+			?.map((response) => response.typeString || "any")
 			.join(" | ");
+
 		responseTypes.push(`    ${status}: ${types}`);
 	}
 	return `{\n${responseTypes.join(";\n")}\n  }`;
@@ -1505,7 +1505,7 @@ async function generateActionsOutput(): Promise<string> {
 	return `export interface ActionPaths {\n${actionOutput}};\n`;
 }
 
-let jsonSchema: TJS.Definition | null = null;
+// let jsonSchema: TJS.Definition | null = null;
 
 async function sendTelemetry() {
 	if (telemetry === false) {
@@ -1557,112 +1557,94 @@ async function sendTelemetry() {
 	}
 }
 
-async function generateSchema() {
-	const start = performance.now();
-	const spinner = ora("Generating API JSON schema...").start();
-	// optionally pass argument to schema generator
-	const settings: TJS.PartialArgs = {
-		// required: true,
-		ignoreErrors: true,
-		aliasRef: true,
-		// topRef: true,
-	};
+// async function generateSchema() {
+// 	const start = performance.now();
+// 	const spinner = ora("Generating API JSON schema...").start();
+// 	// optionally pass argument to schema generator
+// 	const settings: TJS.PartialArgs = {
+// 		// required: true,
+// 		ignoreErrors: true,
+// 		aliasRef: true,
+// 		// topRef: true,
+// 	};
 
-	// optionally pass ts compiler options
-	// const compilerOptions: TJS.CompilerOptions = {
-	// strictNullChecks: true,
-	// };
+// 	// optionally pass ts compiler options
+// 	// const compilerOptions: TJS.CompilerOptions = {
+// 	// strictNullChecks: true,
+// 	// };
 
-	// optionally pass a base path
-	// const basePath = "./my-dir";
+// 	// optionally pass a base path
+// 	// const basePath = "./my-dir";
 
-	const program = TJS.getProgramFromFiles(
-		[path.resolve(`${out}/api.ts`)],
-		// compilerOptions,
-		// basePath
-	);
+// 	const program = TJS.getProgramFromFiles(
+// 		[path.resolve(`${out}/api.ts`)],
+// 		// compilerOptions,
+// 		// basePath
+// 	);
 
-	// write to disk
-	// fs.writeFileSync(
-	// 	path.join(staticFolder, "api", "schemas", "openapi.json"),
-	// 	JSON.stringify(openapi_schema, null, 2),
-	// );
+// 	// write to disk
+// 	// fs.writeFileSync(
+// 	// 	path.join(staticFolder, "api", "schemas", "openapi.json"),
+// 	// 	JSON.stringify(openapi_schema, null, 2),
+// 	// );
 
-	// generate schema for
+// 	// generate schema for
 
-	const schemas: Record<string, TJS.Definition> = {};
+// 	const schemas: Record<string, TJS.Definition> = {};
 
-	for (const method of ["GET", "POST", "PUT", "PATCH", "DELETE"]) {
-		// We can either get the schema for one file and one type...
-		const schema = TJS.generateSchema(program, method, settings);
-		if (schema) {
-			schemas[method] = schema;
-		}
+// 	for (const method of ["GET", "POST", "PUT", "PATCH", "DELETE"]) {
+// 		// We can either get the schema for one file and one type...
+// 		const schema = TJS.generateSchema(program, method, settings);
+// 		if (schema) {
+// 			schemas[method] = schema;
+// 		}
 
-		jsonSchema = schema;
+// 		jsonSchema = schema;
 
-		spinner.text = "Writing JSON Schema";
-		// ensure schema path is there
-		if (!fs.existsSync(schemaOutputPath)) {
-			fs.mkdirSync(schemaOutputPath, { recursive: true });
-		}
+// 		spinner.text = "Writing JSON Schema";
+// 		// ensure schema path is there
+// 		if (!fs.existsSync(schemaOutputPath)) {
+// 			fs.mkdirSync(schemaOutputPath, { recursive: true });
+// 		}
 
-		await Promise.all([
-			fs.promises.writeFile(
-				path.join(outputPath, `${method}.json`),
-				JSON.stringify(schema, null, 2),
-			),
+// 		await Promise.all([
+// 			fs.promises.writeFile(
+// 				path.join(outputPath, `${method}.json`),
+// 				JSON.stringify(schema, null, 2),
+// 			),
 
-			fs.promises.writeFile(
-				path.join(schemaOutputPath, `${method}.json`),
-				JSON.stringify(schema),
-			),
-		]);
-	}
+// 			fs.promises.writeFile(
+// 				path.join(schemaOutputPath, `${method}.json`),
+// 				JSON.stringify(schema),
+// 			),
+// 		]);
+// 	}
 
-	spinner.succeed(
-		`Generated API JSON schema successfully, ${ms_to_human_readable(
-			performance.now() - start,
-		)}`,
-	);
-}
+// 	spinner.succeed(
+// 		`Generated API JSON schema successfully, ${ms_to_human_readable(
+// 			performance.now() - start,
+// 		)}`,
+// 	);
+// }
 
-async function generateZodSchema() {
-	const schema = parseSchema(jsonSchema as any);
+// async function generateZodSchema() {
+// 	const schema = parseSchema(jsonSchema as any);
 
-	const output = `import { z } from 'zod';\n\nexport const schema = ${schema};`;
+// 	const output = `import { z } from 'zod';\n\nexport const schema = ${schema};`;
 
-	telemetryPayload.data.generated_lines_of_code += output.split("\n").length;
+// 	telemetryPayload.data.generated_lines_of_code += output.split("\n").length;
 
-	//   write
-	fs.writeFileSync(path.join(outputPath, "zod.ts"), output);
-	log.success(2, `Generated zod schema in ${path.join(outputPath, "zod.ts")}`);
-}
+// 	//   write
+// 	fs.writeFileSync(path.join(outputPath, "zod.ts"), output);
+// 	log.success(2, `Generated zod schema in ${path.join(outputPath, "zod.ts")}`);
+// }
 
 function generateSvetchDocs() {
-	const static_folder = path.resolve(workingDir, staticFolder);
+	const static_folder = path.join(workingDir, staticFolder);
 	const docs = fs
-		.readFileSync(path.resolve(__dirname, "./assets/docs/+page.svelte"))
+		.readFileSync(path.join(__dirname, "./assets/docs/+page.svelte"))
 		.toString()
-		.replace(
-			"[CLIENT_PATH]",
-			path.join(workingDir, out, "client").replace(workingDir, "").slice(1),
-		);
-	// get all components inside the assets/docs/components folder
-	const body_block = fs
-		.readFileSync(
-			path.resolve(__dirname, "./assets/docs/components/BodyBlock.svelte"),
-		)
-		.toString()
-		.replace(
-			"[INTERFACE_PATH]",
-			path.join(workingDir, out, "api").replace(workingDir, "").slice(1),
-		);
-	const Collapsible = fs
-		.readFileSync(
-			path.resolve(__dirname, "./assets/docs/components/Collapsible.svelte"),
-		)
-		.toString();
+		.replace("[STATIC_FOLDER]", static_folder);
 
 	// get all components inside the assets/docs/components folder
 	// create the folders
@@ -1675,14 +1657,6 @@ function generateSvetchDocs() {
 
 	// write
 	fs.writeFileSync(path.join(docsOutputPath, "+page.svelte"), docs);
-	fs.writeFileSync(
-		path.join(docsOutputPath, "components/BodyBlock.svelte"),
-		body_block,
-	);
-	fs.writeFileSync(
-		path.join(docsOutputPath, "components/Collapsible.svelte"),
-		Collapsible,
-	);
 }
 
 function generateImports(importMap: Record<string, string>): string {
@@ -1771,10 +1745,20 @@ async function generateAll() {
 			try {
 				await generate_tsoa_shema(endpoints, staticFolder);
 			} catch (error) {
-				console.error(error);
-				spinner.warn(
-					`Error generating schema, please report this to the developer: ${error}`,
-				);
+				if (
+					error instanceof Error &&
+					error.message.includes("model definitions for model")
+				) {
+					spinner.warn(
+						ansiColors.red(
+							"All types must have UNIQUE names, please annotate your type using JSDoc, using the @tsoaModel tag to resolve this, more details https://tsoa-community.github.io/docs/faq.html#dealing-with-duplicate-model-names",
+						),
+					);
+					console.error(error.message);
+				}
+				// spinner.warn(
+				// 	`Error generating schema, please report this to the developer: ${error}`,
+				// );
 			}
 			spinner.info(
 				`Generating Client..., ${ms_to_human_readable(
