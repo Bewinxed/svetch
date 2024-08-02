@@ -18,14 +18,6 @@ export async function generate_tsoa_shema(
 	endpoints: Endpoints,
 	staticFolder: string,
 ) {
-	// const routeOptions: ExtendedRoutesConfig = {
-	// 	basePath: "/api",
-	// 	entryFile: "./tsoa/server.ts",
-	// 	routesDir: "./tsoa",
-	// 	noImplicitAdditionalProperties: "silently-remove-extras",
-	// 	bodyCoercion: true,
-	// };
-
 	for (const [api_path, method_map] of endpoints.entries()) {
 		const controller = generate_tsoa_controller(api_path, method_map);
 		if (controller) {
