@@ -1,3 +1,4 @@
+[![npm](https://img.shields.io/npm/v/svetch.ts)](https://www.npmjs.com/package/svetch.ts)
 ![svetch-chan (1)](https://github.com/Bewinxed/svetch/assets/9145989/67c36f21-a21e-42f1-ba50-42f457948c46)
 
 # 🚀 Svetch.ts: Zero-Effort client/types/schema/OpenAPI Schema/Docs generator for your API endpoints
