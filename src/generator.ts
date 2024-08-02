@@ -42,7 +42,12 @@ import { parseSchema } from "json-schema-to-zod";
 import ora, { type Ora } from "ora";
 import { extract_kit_error } from "./lib/parsers/sveltekit/responses.js";
 import type { Telemetry } from "./types/telemetry.js";
-import { extractPayloadTypeNode } from "./utils/endpoint_extractors.js";
+import {
+	extract_endpoint_response,
+	extract_payload_node,
+	extract_query_parameters,
+	extractPayloadTypeNode,
+} from "./utils/endpoint_extractors.js";
 import {
 	log,
 	log_node_with_location,
@@ -429,9 +434,72 @@ function tryParseJsDocComment(comment: string) {
 	}
 }
 
-function processFunctionDeclaration(
+type DeclarationData = {
+	path?: Record<string, string>;
+	query?: Record<string, FormattedType>;
+	body?: FormattedType;
+	responses: StatementResult[];
+};
+
+function process_declaration(
+	method: HTTP_METHOD,
+	file_path: string,
+	api_path: string,
 	declaration: FunctionDeclaration | VariableDeclaration,
-): void {
+	spinner: Ora,
+): DeclarationData | undefined {
+	const result: DeclarationData = {
+		path: extractPathParams(api_path),
+		responses: [],
+	};
+	const nodes = getAllDeclarations(declaration);
+
+	if (!nodes?.length) {
+		return;
+	}
+	const processed_nodes = new Set<string>();
+	for (const node of nodes) {
+		// if (node.getText().includes("searchParams"))
+		// 	console.error(node.getKindName(), node.getText());
+		const hash = hashNode(node);
+		// if (processed_nodes.has(hash)) {
+		// 	continue;
+		// }
+		processed_nodes.add(hash);
+		const query = extract_query_parameters(node, typeChecker);
+		if (query && Object.keys(query).length > 0) {
+			result.query = query;
+			continue;
+		}
+
+		const payload_node = extract_payload_node(node);
+		if (payload_node) {
+			result.body = processTypeNode(payload_node);
+			continue;
+		}
+
+		const response = extract_endpoint_response(
+			node,
+			typeChecker,
+			framework,
+			spinner,
+		);
+
+		if (response?.type) {
+			result.responses.push(response);
+		}
+	}
+	if (!result.body && method !== "GET") {
+		spinner.warn(
+			`No request body declaration found for ${method} method in ${file_path}`,
+		);
+	}
+	return result;
+}
+
+async function processFunctionDeclaration(
+	declaration: FunctionDeclaration | VariableDeclaration,
+): Promise<void> {
 	const spinner = ora({
 		color: "yellow",
 		indent: 5,
@@ -447,23 +515,24 @@ function processFunctionDeclaration(
 
 	spinner.text = ` | ${http_method}`;
 
-	const endpoint_declarations = getAllDeclarations(declaration);
-	// log all declaration names
-	if (!endpoint_declarations?.length) {
-		spinner.fail("No declarations found");
-		return;
-	}
-
 	if (framework === "sveltekit") {
 		extractRootDirTypes(declaration, spinner);
 	}
 
-	const payloadNode = extractPayloadTypeNode(endpoint_declarations);
-	if (!payloadNode && http_method !== "GET") {
-		spinner.warn(
-			`No request body declaration found for ${http_method} method in ${file_path}`,
+	const result = process_declaration(
+		http_method,
+		file_path,
+		api_path,
+		declaration,
+		spinner,
+	);
+	if (!result) {
+		spinner.fail(
+			`No declarations found for ${http_method} method in ${file_path}`,
 		);
+		return;
 	}
+
 	const jsdoc = extractJSDoc(declaration);
 
 	const method =
@@ -479,38 +548,30 @@ function processFunctionDeclaration(
 			.get(http_method) as EndpointDefinition);
 
 	method.parameters = {
-		path: extractPathParams(api_path),
-		query: extractQueryParameters(declaration, method, typeChecker),
-		body: payloadNode ? processTypeNode(payloadNode) : undefined,
+		path: result.path,
+		query: result.query,
+		body: result.body,
 	};
 	method.docs = jsdoc[0]?.[0]
 		? commentParser.stringify(jsdoc[0][0])
 		: undefined;
-
-	const responses = extractEndpointResponses(endpoint_declarations);
-	for (const [status, response] of responses) {
+	for (const { status, type } of result.responses) {
 		if (!isStatusOk(status)) {
 			if (!method.errors[status]) {
 				method.errors[status] = [];
 			}
-			method.errors[status].push(response);
+			method.errors[status].push(type);
 		} else {
 			if (!method.responses[status]) {
 				method.responses[status] = [];
 			}
-			method.responses[status].push(response);
+			method.responses[status].push(type);
 		}
 	}
 
 	if (!method.responses) {
 		spinner.warn(
 			`No response body found for ${http_method} method in ${file_path}, (Declare this using const results = {...}, new Response(...), or json(...))`,
-		);
-	}
-
-	if (["POST", "PUT", "PATCH"].includes(http_method) && !payloadNode) {
-		spinner.warn(
-			`No payload declaration found for ${http_method} method in ${file_path}, (Declare this using const payload = {...} as TYPE`,
 		);
 	}
 }
@@ -561,112 +622,10 @@ function isStatusOk(status: number) {
 	return status >= 200 && status < 300;
 }
 
-function extract_results_declaration(
-	node: Node,
-	spinner: Ora,
-): StatementResult | undefined {
-	if (
-		Node.isVariableDeclaration(node) &&
-		(node.getName() === "result" || node.getName() === "results")
-	) {
-		const initializer = node.getInitializer();
-		if (!initializer) {
-			spinner.fail(
-				`Unhandled (results =) statement, please report this to the developer, ${node_text_snippet(
-					node,
-				)}, of type ${node?.getKindName()}`,
-			);
-			return;
-		}
-		return {
-			status: 200,
-			type: processTypeNode(initializer),
-		};
-	}
-}
-
 type StatementResult = {
 	status: number;
 	type: FormattedType;
 };
-
-function extract_return_statement(
-	node: Node,
-	spinner: Ora,
-): StatementResult | undefined {
-	if (Node.isReturnStatement(node)) {
-		const expression = node.getExpression();
-		if (!expression) {
-			spinner.warn(
-				`Detected return statement without expression ${node_text_snippet(
-					node,
-				)}`,
-			);
-			return;
-		}
-		const result = process_expression(expression, spinner);
-		if (!result || !result.resultsDeclaration) {
-			spinner.warn(
-				`Unhandled return statement with type (${expression.getKindName()})
-			in ${log_node_with_location(node)}`,
-			);
-			return;
-		}
-		if (result?.resultsDeclaration) {
-			return {
-				status: result.status,
-				type: processTypeNode(result?.resultsDeclaration),
-			};
-		}
-		spinner.fail(
-			`Unhandled return expression
-	${log_node_with_location(node)}`,
-		);
-	}
-}
-
-function extractEndpointResponses(
-	allDeclarations: Node[],
-): [number, FormattedType][] {
-	const processed_nodes = new Set<string>();
-	const responses: [number, FormattedType][] = [];
-	const spinner = ora({
-		color: "yellow",
-		indent: 7,
-	}).start();
-
-	for (const node of allDeclarations) {
-		const hash = hashNode(node);
-		if (processed_nodes.has(hash)) {
-			continue;
-		}
-		processed_nodes.add(hash);
-		let result: StatementResult | undefined = undefined;
-		const error_node = extractErrorDetails(node);
-		if (error_node) {
-			if (error_node) {
-				responses.push([
-					error_node.status,
-					error_node.type_string
-						? {
-								typeString: error_node.type_string,
-							}
-						: processTypeNode(error_node.node),
-				]);
-			}
-			// console.error(error_node.node.getText());
-			continue;
-		}
-		result =
-			extract_results_declaration(node, spinner) ||
-			extract_return_statement(node, spinner);
-		if (result) {
-			responses.push([result.status, result.type]);
-		}
-	}
-
-	return responses;
-}
 
 function node_text_snippet(node: Node) {
 	const text = node.getText();
@@ -874,7 +833,7 @@ function process_call_expression(
 	return result;
 }
 
-function processTypeDeclaration(
+async function processTypeDeclaration(
 	declaration: TypeAliasDeclaration,
 	spinner: Ora,
 ) {
@@ -950,7 +909,7 @@ function processTypeDeclaration(
 		});
 }
 
-function processActionsDeclaration(
+async function processActionsDeclaration(
 	declaration: TypeAliasDeclaration,
 	spinner: Ora,
 ) {
@@ -1144,7 +1103,6 @@ function ms_to_human_readable(ms: number) {
 async function processFiles(spinner: Ora) {
 	const start = performance.now();
 	const all_files = project.getSourceFiles();
-	// console.log(all_files.map((file) => file.getFilePath()));
 	spinner.text = "Scanning for API endpoints...";
 	spinner.info(
 		`Found ${all_files.length} files in ${ms_to_human_readable(
@@ -1192,9 +1150,19 @@ async function processFiles(spinner: Ora) {
 				| TypeAliasDeclaration
 			)[];
 
+			const processed_declarations = new Set<string>();
+			const declaration_processing_promises = [];
 			for (const declaration of valid_declarations) {
-				await process_file_declarations(file, declaration);
+				const hash = hashNode(declaration);
+				if (processed_declarations.has(hash)) {
+					continue;
+				}
+				processed_declarations.add(hash);
+				declaration_processing_promises.push(
+					process_file_declarations(file, declaration),
+				);
 			}
+			await Promise.all(declaration_processing_promises);
 			valid_files.add(filePath);
 		}),
 	);
@@ -1224,23 +1192,33 @@ async function process_file_declarations(
 			)}`,
 		);
 
+	const promises = [];
+
 	if (["GET", "POST", "PUT", "PATCH", "DELETE"].includes(declarationName)) {
-		processFunctionDeclaration(
-			declaration as FunctionDeclaration | VariableDeclaration,
+		promises.push(
+			processFunctionDeclaration(
+				declaration as FunctionDeclaration | VariableDeclaration,
+			),
 		);
 	} else if (
 		["_Get", "_Post", "_Put", "_Patch", "_Delete"].includes(declarationName)
 	) {
-		processTypeDeclaration(
-			declaration as TypeAliasDeclaration,
-			declaration_spinner,
+		promises.push(
+			processTypeDeclaration(
+				declaration as TypeAliasDeclaration,
+				declaration_spinner,
+			),
 		);
 	} else if (declarationName === "actions") {
-		processActionsDeclaration(
-			declaration as TypeAliasDeclaration,
-			declaration_spinner,
+		promises.push(
+			processActionsDeclaration(
+				declaration as TypeAliasDeclaration,
+				declaration_spinner,
+			),
 		);
 	}
+
+	await Promise.all(promises);
 }
 
 async function generateApiTypes() {
@@ -1401,9 +1379,11 @@ const generateParametersType = (
 		};\n`;
 	}
 	if (parameters.query) {
-		output += `        query: ${
-			parameters.query ? objectToUnquotedString(parameters.query) : "undefined"
-		};\n`;
+		const responseTypes: string[] = [];
+		for (const [param, type] of Object.entries(parameters.query)) {
+			responseTypes.push(`    ${param}: ${type.typeString};`);
+		}
+		output += `        query: {\n${responseTypes.join("\n")}\n        };\n`;
 	}
 
 	output += "      }";

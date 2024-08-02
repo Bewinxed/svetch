@@ -127,3 +127,10 @@ export function node_location_and_line<T extends Node>(declaration: T) {
 export function absolute_to_relative(path: string) {
 	return path.replace(process.cwd(), "");
 }
+
+export function node_text_snippet(node: Node) {
+	const text = node.getText();
+	const start = Math.max(0, text.lastIndexOf("\n", 100));
+	const end = Math.min(text.length, text.indexOf("\n", 300));
+	return text.slice(start, end);
+}

@@ -17,8 +17,7 @@ export type EndpointDefinition = {
 		body?: FormattedType;
 		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		path?: Record<string, any>;
-		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		query?: Record<string, any>;
+		query?: Record<string, FormattedType>;
 	};
 	responses: Partial<Record<number, FormattedType[]>>;
 	errors: Record<string, FormattedType[]>;
