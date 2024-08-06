@@ -57,6 +57,7 @@ import { footprintOfType } from "./utils/svelte-codegen.js";
 import { generate_tsoa_shema } from "./utils/tsoa.js";
 import { brackets, newline } from "./utils/writers.js";
 import { hashNode } from "./utils/node_utils.js";
+import { entries } from "./utils/helpers/type.js";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -1183,29 +1184,32 @@ const generateParametersType = (
 		return "undefined";
 	}
 
-	let output = "{\n";
-
-	if (parameters.body) {
-		output += `        body: ${parameters.body.typeString?.replaceAll(
-			`${workingDir}/`,
-			"",
-		)};\n`;
-	}
-	if (parameters.path) {
-		output += `        path: ${
-			parameters.path ? objectToUnquotedString(parameters.path) : "undefined"
-		};\n`;
-	}
-	if (parameters.query) {
-		const responseTypes: string[] = [];
-		for (const [param, type] of Object.entries(parameters.query)) {
-			responseTypes.push(`    ${param}: ${type.typeString};`);
-		}
-		output += `        query: {\n${responseTypes.join("\n")}\n        };\n`;
-	}
-
-	output += "      }";
-	return output;
+	return brackets(
+		(() => {
+			let output = "";
+			if (parameters.body) {
+				output += `        body: ${parameters.body.typeString?.replaceAll(
+					`${workingDir}/`,
+					"",
+				)};\n`;
+			}
+			if (parameters.path) {
+				output += `        path: ${brackets(
+					entries(parameters.path)
+						.map(([key, value]) => `${String(key)}: ${value}`)
+						.join("\n"),
+				)};\n`;
+			}
+			if (parameters.query) {
+				const query_parameters: string[] = [];
+				for (const [param, type] of Object.entries(parameters.query)) {
+					query_parameters.push(`    ${param}: ${type.typeString};`);
+				}
+				output += `        query: ${brackets(query_parameters.join("\n"))};\n`;
+			}
+			return output;
+		})(),
+	);
 };
 
 const generateResponsesType = (
@@ -1222,85 +1226,82 @@ const generateResponsesType = (
 
 		responseTypes.push(`    ${status}: ${types}`);
 	}
-	return `{\n${responseTypes.join(";\n")}\n  }`;
+	return brackets(responseTypes.join("\n"));
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 function formatObject(obj: any): string {
-	if (obj === undefined) {
+	if (!obj) {
 		return "undefined";
 	}
 	if (Array.isArray(obj)) {
 		return `[${obj.map(formatObject).join(", ")}]`;
 	}
 	if (typeof obj === "string") {
-		if (/^\{\s*\}$/.test(obj)) {
+		return /^\{\s*\}$/.test(obj) ? "never" : obj;
+	}
+	if (typeof obj === "object") {
+		const entries = Object.entries(obj);
+		if (entries.length === 0) {
 			return "never";
 		}
-		return `${obj}`;
+		return brackets(
+			entries
+				.map(([key, value]) => `${String(key)}: ${formatObject(value)},`)
+				.join("\n"),
+		);
 	}
-	if (obj == null || JSON.stringify(obj) === JSON.stringify({})) {
-		return "never";
-	}
-
-	let objStr = "{\n";
-	for (const key in obj) {
-		if (Object.prototype.hasOwnProperty.call(obj, key)) {
-			let value = formatObject(obj[key]);
-			objStr += `          ${key}: ${value},\n`;
-		}
-	}
-	objStr += "        }";
-	return objStr;
+	return obj;
 }
 
 async function generateActionsOutput(): Promise<string> {
 	let actionOutput = "";
 
-	for (const apiPath in actions) {
-		actionOutput += `  '${apiPath}': {\n`;
-		for (const method in actions[apiPath]) {
-			actionOutput += `    ${method}: {\n`;
-
-			for (const action in actions[apiPath][method]) {
-				actionOutput += "      parameters: {\n";
-
-				const parameters = actions[apiPath][method][action].parameters;
-				for (const paramType in parameters) {
-					const paramValue = await formatObject(parameters[paramType]);
-					const optional = paramValue === "never" ? "?" : "";
-					actionOutput += `        ${paramType}${optional}: ${paramValue},\n`;
-				}
-				actionOutput += "      },\n";
-				actionOutput += "      responses: {\n";
-
-				for (const statusCode in actions[apiPath][method][action].responses) {
-					const response =
-						actions[apiPath][method][action].responses[statusCode];
-					const formattedResponse = await formatObject(response);
-					if (formattedResponse.trim() === "") {
-						continue;
-					}
-					actionOutput += `        ${statusCode}: ${formattedResponse},\n`;
-				}
-
-				actionOutput += "      },\n";
-				actionOutput += "      errors: {\n";
-
-				for (const statusCode in actions[apiPath][method][action].errors) {
-					const response = actions[apiPath][method][action].errors[statusCode];
-					actionOutput += `        ${statusCode}: ${await formatObject(
-						response,
-					)},\n`;
-				}
-
-				actionOutput += "      },\n";
-				actionOutput += "    },\n";
-			}
-		}
-		actionOutput += "  },\n";
+	for (const [apiPath, action] of entries(actions)) {
+		actionOutput += `  '${apiPath}': {
+		${entries(action)
+			.map(
+				([method, methodActions]) => `
+			${method}: {
+				${entries(methodActions)
+					.map(
+						([action, actionData]) => `
+					parameters: ${brackets(
+						entries(actionData.parameters)
+							.map(([paramType, paramValue]) => {
+								const formattedValue = formatObject(paramValue);
+								const optional = formattedValue === "never" ? "?" : "";
+								return `${String(paramType)}${optional}: ${formattedValue},`;
+							})
+							.join("\n"),
+					)}
+					responses: ${brackets(
+						entries(actionData.responses)
+							.filter(([, response]) => formatObject(response).trim() !== "")
+							.map(
+								([statusCode, response]) =>
+									`${Number(statusCode)}: ${formatObject(response)},`,
+							)
+							.join("\n"),
+					)}
+					errors: ${brackets(
+						entries(actionData.errors)
+							.map(
+								([statusCode, response]) =>
+									`${Number(statusCode)}: ${formatObject(response)},`,
+							)
+							.join("\n"),
+					)}
+				`,
+					)
+					.join(",\n")}
+			}`,
+			)
+			.join(",\n")}
+	}`;
 	}
 
-	return `export interface ActionPaths {\n${actionOutput}};\n`;
+	return `export interface ActionPaths ${brackets(actionOutput)}`;
 }
 
 // let jsonSchema: TJS.Definition | null = null;
