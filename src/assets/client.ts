@@ -47,12 +47,10 @@ type ExtendedResponse<
 export class Svetch {
 	private baseURL: string;
 	private fetchFn: typeof fetch;
-	private validate: boolean;
 
 	constructor(baseURL = "", fetchInstance?: typeof fetch, validate = true) {
 		this.baseURL = baseURL;
 		this.fetchFn = fetchInstance || fetch;
-		this.validate = validate;
 	}
 
 	error(status: number, message: string) {
@@ -99,20 +97,8 @@ export class Svetch {
 			}
 		}
 
-		if (this.validate && body) {
-			try {
-				// @ts-ignore
-				schema.shape[endpoint]?.shape[
-					method
-				]?.shape.parameters.shape.body.parse(body);
-			} catch (err) {
-				console.error("SVETCH: Request body is invalid", err);
-				throw err;
-			}
-		}
-
 		const response = (await this.fetchFn(
-			`${this.baseURL}/${updatedEndpoint + query_params}`,
+			`${this.baseURL}${updatedEndpoint + query_params}`,
 			{
 				body: JSON.stringify(body),
 				method: method as string,
@@ -131,16 +117,6 @@ export class Svetch {
 			APIPaths[M][EP]
 		>;
 
-		if (this.validate && responseData) {
-			try {
-				// @ts-ignore
-				schema.shape[endpoint]?.shape[method]?.shape.responses.shape[
-					response.status
-				].parse(responseData);
-			} catch (err) {
-				console.log("SVETCH: Response data is invalid", err);
-			}
-		}
 		response.data = responseData;
 		return response;
 	}
