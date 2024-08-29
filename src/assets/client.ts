@@ -48,7 +48,7 @@ export class Svetch {
 	private baseURL: string;
 	private fetchFn: typeof fetch;
 
-	constructor(baseURL = "", fetchInstance?: typeof fetch, validate = true) {
+	constructor(baseURL = "", fetchInstance?: typeof fetch) {
 		this.baseURL = baseURL;
 		this.fetchFn = fetchInstance || fetch;
 	}
@@ -97,13 +97,27 @@ export class Svetch {
 			}
 		}
 
-		const response = (await this.fetchFn(
-			`${this.baseURL}${updatedEndpoint + query_params}`,
-			{
-				body: JSON.stringify(body),
-				method: method as string,
-			},
-		)) as ExtendedResponse<M, EP>;
+		let baseUrl: string | undefined;
+
+		if (typeof window === "undefined") {
+			baseUrl = undefined;
+		} else {
+			baseUrl = window.location.origin;
+		}
+
+		if (typeof window !== "undefined" && !baseUrl) {
+			throw new Error(
+				"Unable to determine base URL, Please provide it in the constructor",
+			);
+		}
+
+		const url = new URL(updatedEndpoint, baseUrl);
+		url.search = query_params.toString();
+
+		const response = (await this.fetchFn(url, {
+			body: JSON.stringify(body),
+			method: method as string,
+		})) as ExtendedResponse<M, EP>;
 
 		if (!response.ok) {
 			const errorResponse = await response.json();

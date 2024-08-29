@@ -1,5 +1,6 @@
 {
   "author": "Omar Al Matar",
+  "version": "2.1.37",
   "funding": [
     "https://petrasolutions.lemonsqueezy.com/checkout/buy/19210e05-ae3c-41a0-920c-324e3083618d"
   ],
@@ -71,6 +72,5 @@
     "yolo": "npm run bump && npm run build && npm run publish"
   },
   "type": "module",
-  "types": "./dist/src/index.d.ts",
-  "version": "2.1.37"
+  "types": "./dist/src/index.d.ts"
 }
