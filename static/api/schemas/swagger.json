@@ -6,7 +6,103 @@
 		"parameters": {},
 		"requestBodies": {},
 		"responses": {},
-		"schemas": {},
+		"schemas": {
+			"UserId": {
+				"type": "string"
+			},
+			"Record_never.never_": {
+				"properties": {},
+				"type": "object",
+				"description": "Construct a type with a set of properties K of type T"
+			},
+			"Session": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"expiresAt": {
+						"type": "string",
+						"format": "date-time"
+					},
+					"fresh": {
+						"type": "boolean"
+					},
+					"userId": {
+						"$ref": "#/components/schemas/UserId"
+					}
+				},
+				"required": [
+					"id",
+					"expiresAt",
+					"fresh",
+					"userId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SolanaSignInInput": {
+				"properties": {
+					"proof": {
+						"type": "string"
+					},
+					"account": {
+						"properties": {
+							"label": {
+								"type": "string"
+							},
+							"icon": {
+								"type": "string"
+							},
+							"address": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"label",
+							"icon",
+							"address"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"proof",
+					"account"
+				],
+				"type": "object"
+			},
+			"SerializedSolanaSignInOutput": {
+				"properties": {
+					"signature": {
+						"type": "string"
+					},
+					"account": {
+						"properties": {
+							"label": {
+								"type": "string"
+							},
+							"icon": {
+								"type": "string"
+							},
+							"address": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"label",
+							"icon",
+							"address"
+						],
+						"type": "object"
+					}
+				},
+				"required": [
+					"signature",
+					"account"
+				],
+				"type": "object"
+			}
+		},
 		"securitySchemes": {}
 	},
 	"info": {
@@ -17,8 +113,15 @@
 			"post": {
 				"operationId": "Post",
 				"responses": {
-					"204": {
-						"description": "No content"
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/Session"
+								}
+							}
+						}
 					}
 				},
 				"security": [],
@@ -30,14 +133,66 @@
 						"schema": {
 							"type": "string"
 						}
+					},
+					{
+						"in": "query",
+						"name": "state",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
 					}
-				]
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"output": {
+										"$ref": "#/components/schemas/SerializedSolanaSignInOutput"
+									},
+									"input": {
+										"$ref": "#/components/schemas/SolanaSignInInput"
+									}
+								},
+								"required": [
+									"output",
+									"input"
+								],
+								"type": "object"
+							}
+						}
+					}
+				}
 			},
 			"patch": {
 				"operationId": "Patch",
 				"responses": {
-					"204": {
-						"description": "No content"
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {}
+							}
+						}
+					},
+					"400": {
+						"description": "",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string",
+									"enum": [
+										"Not OK"
+									],
+									"nullable": false
+								},
+								"examples": {
+									"Example 1": {}
+								}
+							}
+						}
 					}
 				},
 				"security": [],
@@ -49,14 +204,46 @@
 						"schema": {
 							"type": "string"
 						}
+					},
+					{
+						"in": "query",
+						"name": "number",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
 					}
-				]
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/Session"
+							}
+						}
+					}
+				}
 			},
 			"get": {
 				"operationId": "Get",
 				"responses": {
-					"204": {
-						"description": "No content"
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"uwu": {}
+									},
+									"required": [
+										"uwu"
+									],
+									"type": "object"
+								}
+							}
+						}
 					}
 				},
 				"security": [],
@@ -67,6 +254,15 @@
 						"required": true,
 						"schema": {
 							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "number",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
 						}
 					}
 				]

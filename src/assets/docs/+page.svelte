@@ -5,7 +5,7 @@
 
   onMount(async () => {
     SwaggerUIBundle({
-      url: "/api/schemas/openapi.json",
+      url: "/api/schemas/swagger.json",
       dom_id: "#swagger-ui-container",
       defaultModelsExpandDepth: 0,
     });

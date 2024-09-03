@@ -1,9 +1,13 @@
 <script lang="ts">
-	import { Svetch } from "../lib/api/client";
+	import { Svetch } from "../lib/api/client.js";
 
     const svetch = new Svetch()
 
-    svetch.post("H:dev/svetch/api/prisma", {
-        
-    })
+    const result = svetch.post("/api/prisma/:id", {
+        path: {
+            id: "1"
+        },
+        body: {
+        }
+    }).then((res) => res.okOrThrow())
 </script>

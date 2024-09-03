@@ -1,6 +1,23 @@
 import type { Prisma } from "@prisma/client";
 import type { Session } from "lucia";
 
+export type SolanaSignInInput = {
+	account: {
+		address: string;
+		icon: string;
+		label: string;
+	};
+	proof: string;
+};
+
+export type SerializedSolanaSignInOutput = {
+	account: {
+		address: string;
+		icon: string;
+		label: string;
+	};
+	signature: string;
+};
 /**
  * @tsoaModel
  */
@@ -145,7 +162,7 @@ export const POST = async ({
 
 	locals.auth.setSession(session);
 
-	const results = session;
+	const results = session as Session
 
 	return json(results);
 };
@@ -230,5 +247,5 @@ export const GET = async ({ params, url }) => {
 	const string_param = url.searchParams.get("query") as string;
 	const number_param = url.searchParams.get("number") as number;
 
-	return json();
+	return json({'uwu'});
 };

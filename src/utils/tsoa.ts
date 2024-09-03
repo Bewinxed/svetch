@@ -24,7 +24,6 @@ export async function generate_tsoa_shema(
 			await write_route_controller(api_path, controller, staticFolder);
 		}
 	}
-
 	await write_spec(staticFolder);
 }
 
@@ -101,7 +100,12 @@ function generate_route_controller(
 			imports.add('import { Query } from "tsoa";');
 			Object.entries(endpoint.parameters.query)
 				.map(([key, value]) => {
-					args.push(`@Query() ${key}: ${value}`);
+					if (value.imports) {
+						for (const imp of value.imports) {
+							imports.add(imp);
+						}
+					}
+					args.push(`@Query() ${key}: ${value.typeString}`);
 				})
 				.join(",");
 		}
@@ -176,6 +180,7 @@ async function write_spec(staticFolder: string) {
 	if (!existsSync(tsoa_working_dir)) {
 		await fs.mkdir(tsoa_working_dir, { recursive: true });
 	}
+	console.log(spec_output_path);
 	await generateSpec(
 		{
 			basePath: "/api",
@@ -195,7 +200,12 @@ async function write_spec(staticFolder: string) {
 			"**/node_modules/@tsoa/**",
 			"**/@tsoa/cli/node_modules/**",
 		],
-	).then(async () => {
-		await fs.rm(tsoa_working_dir, { recursive: true, force: true });
-	});
+	)
+		.then(async () => {
+			await fs.rm(tsoa_working_dir, { recursive: true, force: true });
+		})
+		.catch((e) => {
+			console.error("Error while generating OpenAPI Spec", e);
+			throw e;
+		});
 }

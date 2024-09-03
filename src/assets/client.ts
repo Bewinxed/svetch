@@ -24,9 +24,13 @@ type Params<M extends EndpointMethod<any, any>> = M extends {
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 type SuccessResponse<M extends EndpointMethod<any, any>> = M extends {
-	responses: { 200: infer S };
+	responses: infer R;
 }
-	? S
+	? R extends {
+			[K in keyof R]: K extends `${2}${string}` ? infer S : never;
+		}[keyof R]
+		? S
+		: never
 	: never;
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -42,6 +46,11 @@ type ExtendedResponse<
 > = Response & {
 	data?: SuccessResponse<APIPaths[EP][K]>;
 	error?: ErrorResponse<APIPaths[EP][K]>;
+	isOk: () => this is ExtendedResponse<EP, K> & {
+		data: SuccessResponse<APIPaths[EP][K]>;
+		error: undefined;
+	};
+	okOrThrow: () => SuccessResponse<APIPaths[EP][K]>;
 };
 
 export class Svetch {
@@ -111,8 +120,7 @@ export class Svetch {
 			);
 		}
 
-		const url = new URL(updatedEndpoint, baseUrl);
-		url.search = query_params.toString();
+		const url = `${baseUrl ?? ""}${updatedEndpoint}${query_params.toString()}`;
 
 		const response = (await this.fetchFn(url, {
 			body: JSON.stringify(body),
@@ -132,6 +140,28 @@ export class Svetch {
 		>;
 
 		response.data = responseData;
+		response.isOk = function (
+			this: ExtendedResponse<M, EP>,
+		): this is ExtendedResponse<M, EP> & {
+			data: SuccessResponse<APIPaths[M][EP]>;
+			error: undefined;
+		} {
+			return this.ok && !!this.data && !this.error;
+		};
+
+		response.okOrThrow = () => {
+			if (!response.ok || !response.data || response.error) {
+				throw new Error(
+					response.error &&
+						typeof response.error === "object" &&
+						"message" in response.error &&
+						typeof response.error.message === "string"
+						? response.error.message
+						: JSON.stringify(response.error),
+				);
+			}
+			return response.data;
+		};
 		return response;
 	}
 
