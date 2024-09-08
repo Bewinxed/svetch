@@ -24,13 +24,9 @@ type Params<M extends EndpointMethod<any, any>> = M extends {
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
 type SuccessResponse<M extends EndpointMethod<any, any>> = M extends {
-	responses: infer R;
+	responses: { 200: infer S };
 }
-	? R extends {
-			[K in keyof R]: K extends `${2}${string}` ? infer S : never;
-		}[keyof R]
-		? S
-		: never
+	? S
 	: never;
 
 // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -120,7 +116,7 @@ export class Svetch {
 			);
 		}
 
-		const url = `${baseUrl ?? ""}${updatedEndpoint}${query_params.toString()}`;
+		const url = `${baseUrl ?? ""}${updatedEndpoint}${query_params.size > 0 ? `?${query_params.toString()}` : ""}`;
 
 		const response = (await this.fetchFn(url, {
 			body: JSON.stringify(body),
