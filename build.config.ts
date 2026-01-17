@@ -2,7 +2,6 @@ import { defineBuildConfig } from 'unbuild'
 import fs from 'fs'
 import path from 'path'
 
-
 const copyFolderRecursive = (src: string, dest: string) => {
   if (!fs.existsSync(dest)) {
     fs.mkdirSync(dest, { recursive: true });
@@ -24,21 +23,25 @@ const copyFolderRecursive = (src: string, dest: string) => {
 
 export default defineBuildConfig({
   entries: [
-    "src/bin.ts"
+    "src/vite-plugin/index.ts"
   ],
   clean: true,
-  declaration: true, // Generate .d.ts files
+  declaration: true,
   outDir: 'dist',
   rollup: {
     emitCJS: true,
     inlineDependencies: false,
-
   },
+  externals: [
+    'vite',
+    'ts-morph',
+    'tsoa',
+  ],
   hooks: {
     'build:done': () => {
       const srcDir = path.join(__dirname, 'src/assets');
       const destDir = path.join(__dirname, 'dist/assets');
-      
+
       if (fs.existsSync(srcDir)) {
         copyFolderRecursive(srcDir, destDir);
         console.log('Copied src/assets to dist/assets');
